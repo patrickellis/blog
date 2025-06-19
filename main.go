@@ -30,7 +30,7 @@ type Post struct {
 
 type BlogCache struct {
 	mu    sync.RWMutex
-	posts []Post // Now a slice to keep it sorted
+	posts []Post
 }
 
 // Data passed to the main base template

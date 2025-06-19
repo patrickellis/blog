@@ -21,13 +21,14 @@ steps:
       - "--region=us-central1"
       - "--platform=managed"
       - "--allow-unauthenticated"
+    secretEnv: ["PURGE_KEY"]
     automapSubstitutions: true
-  - name: "gcr.io/cloud-builders/curl"
+  - name: "gcr.io/google.com/cloudsdktool/cloud-sdk"
     entrypoint: "bash"
     args:
       - "-c"
       - |
-        SERVICE_URL=$$(gcloud run services describe blog-server --platform=managed --format='value(status.url)')
+        SERVICE_URL=$$(gcloud run services describe blog-server --platform=managed --region=us-central1 --format='value(status.url)')
         curl -X POST "$${SERVICE_URL}/purge-cache?key=$${PURGE_KEY}"
     secretEnv: ["PURGE_KEY"]
     automapSubstitutions: true

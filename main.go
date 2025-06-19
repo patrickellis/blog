@@ -36,7 +36,7 @@ type BlogCache struct {
 // Data passed to the main base template
 type PageData struct {
 	Title    string
-	AllPosts []Post
+	Posts []Post
 	Content  interface{} // Can be a Post, or any other struct for other pages
 	PageID   string      // e.g., "post", "home", "about"
 }
@@ -152,7 +152,7 @@ func renderPage(w http.ResponseWriter, r *http.Request, data PageData, fragmentT
 func handleHome(w http.ResponseWriter, r *http.Request) {
 	data := PageData{
 		Title:    "Home",
-		AllPosts: cache.posts,
+		Posts: cache.posts,
 		PageID:   "home",
 	}
 	renderPage(w, r, data, "home.html")
@@ -161,7 +161,7 @@ func handleHome(w http.ResponseWriter, r *http.Request) {
 func handleAbout(w http.ResponseWriter, r *http.Request) {
 	data := PageData{
 		Title:    "About Me",
-		AllPosts: cache.posts,
+		Posts: cache.posts,
 		PageID:   "about",
 	}
 	renderPage(w, r, data, "about.html")
@@ -187,7 +187,7 @@ func handlePost(w http.ResponseWriter, r *http.Request) {
 
 	data := PageData{
 		Title:    foundPost.Title,
-		AllPosts: cache.posts,
+		Posts: cache.posts,
 		Content:  *foundPost,
 		PageID:   "post",
 	}

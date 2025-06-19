@@ -1,8 +1,8 @@
 {{define "post-content.html"}}
 <article>
-  <h1>{{ .Content.Title }}</h1>
-  <p><em>Published on {{ .Content.Date }}</em></p>
+  <h1>{{.Content.Title}}</h1>
+  <em>Published on {{.Content.Date}}</em>
   <hr />
-  <div>{{ .Content.HTMLContent }}</div>
+  <div>{{.Content.HTMLContent}}</div>
 </article>
 {{end}}

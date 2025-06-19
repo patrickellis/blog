@@ -12,6 +12,7 @@
 </head>
 <body>
     <div class="site-wrapper">
+        <!-- Left Explorer Panel -->
         <aside class="explorer">
             <h2>Explorer</h2>
             <div class="search-bar">
@@ -27,6 +28,7 @@
             </nav>
         </aside>
 
+        <!-- Right Content Panel -->
         <main class="content-panel">
             <header class="content-header">
                 <nav class="content-nav">
@@ -37,7 +39,7 @@
             <div id="content-area" class="content-area">
                 {{if eq .PageID "home"}}{{template "home.html" .}}{{end}}
                 {{if eq .PageID "about"}}{{template "about.html" .}}{{end}}
-                {{if eq .PageID "post"}}{{template "post-content.html" .Content}}{{end}}
+                {{if eq .PageID "post"}}{{template "post-content.html" .}}{{end}}
             </div>
             <footer class="content-footer">
                 <img src="/metrics-badge" alt="Render Time">
@@ -45,6 +47,7 @@
         </main>
     </div>
 
+    <!-- Search Popup Modal -->
     <div id="search-modal" class="modal-overlay hidden">
         <div class="modal-box">
             <button class="modal-close">&times;</button>

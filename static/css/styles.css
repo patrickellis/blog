@@ -1,10 +1,39 @@
-/* --- Additions for Search Modal and Active Links --- */
+katex {
+  font-family:
+    "KaTeX_Main", "Latin Modern Math", "Times New Roman", serif !important;
+  font-size: 1.1em; /* Make math stand out a little */
+}
+
+/* Style for block-level math containers */
+.latex-block {
+  cursor: pointer;
+  padding: 1rem;
+  border: 1px dashed var(--border-color);
+  margin-bottom: 1em;
+}
+
+/* Style for inline math containers */
+.latex-inline {
+  /* No special styling needed for the container itself */
+  /* KaTeX will replace its content */
+}
+
+.latex-source {
+  display: none;
+  margin-top: 1rem;
+  padding: 1rem;
+  background-color: var(--code-bg);
+  border-left: 3px solid var(--accent-color);
+  font-family: var(--font-mono);
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+/* ... rest of the CSS file is largely unchanged ... */
 mark {
-  background-color: #fef08a; /* A nice yellow for highlighting */
+  background-color: #fef08a;
   padding: 2px;
   border-radius: 3px;
 }
-
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -17,7 +46,6 @@ mark {
   align-items: center;
   z-index: 1000;
 }
-
 .modal-box {
   background-color: white;
   padding: 2rem;
@@ -28,7 +56,6 @@ mark {
   overflow-y: auto;
   position: relative;
 }
-
 .modal-close {
   position: absolute;
   top: 1rem;
@@ -38,17 +65,13 @@ mark {
   font-size: 1.5rem;
   cursor: pointer;
 }
-
 .hidden {
   display: none;
 }
-
-/* Style for active links in the explorer */
 .post-list a.active {
   background-color: var(--explorer-search-bg);
   color: white;
 }
-/* ... rest of your CSS is unchanged ... */
 :root {
   --bg-color: #ffffff;
   --text-color: #2d3748;
@@ -189,22 +212,6 @@ pre {
   padding: 1rem;
   border-radius: 0.25rem;
   overflow-x: auto;
-}
-.latex-block {
-  cursor: pointer;
-  padding: 1rem;
-  border: 1px dashed var(--border-color);
-  margin-bottom: 1em;
-}
-.latex-source {
-  display: none;
-  margin-top: 1rem;
-  padding: 1rem;
-  background-color: var(--code-bg);
-  border-left: 3px solid var(--accent-color);
-  font-family: var(--font-mono);
-  white-space: pre-wrap;
-  word-break: break-all;
 }
 .content-footer {
   position: absolute;

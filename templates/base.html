@@ -5,45 +5,42 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ .Title }} - Patrick Ellis</title>
 
-    <!-- UPDATED: Point to self-hosted assets -->
-    <link rel="stylesheet" href="/static/css/styles.css"> <!-- Assuming you have your main styles.css here -->
+    <link rel="stylesheet" href="/static/css/styles.css">
     <link rel="stylesheet" href="/static/css/katex.min.css">
     
     <script src="/static/js/htmx.min.js"></script>
     <script src="/static/js/katex.min.js"></script>
     <script src="/static/js/main.js"></script>
-
 </head>
-<body class="bg-gray-100 font-sans text-gray-800">
-    <div class="flex h-screen">
+<body>
+    <div class="site-wrapper">
         <!-- Left Explorer Panel -->
-        <aside class="w-1/4 bg-gray-800 text-white p-4 flex flex-col overflow-y-auto">
-            <h2 class="text-lg font-bold mb-4">Explorer</h2>
-            <div class="mb-4">
+        <aside class="explorer">
+            <h2>Explorer</h2>
+            <div class="search-bar">
                 <input 
                     type="search" 
                     name="q" 
-                    placeholder="Search posts..." 
-                    class="w-full p-2 bg-gray-700 rounded border border-gray-600 focus:outline-none focus:border-blue-500"
+                    placeholder="Search posts..."
                     hx-post="/search"
                     hx-trigger="keyup changed delay:300ms"
                     hx-target="#post-list"
                 >
             </div>
-            <nav id="post-list" class="flex-grow">
+            <nav id="post-list" class="post-list">
                 {{ template "search-results.html" . }}
             </nav>
         </aside>
 
         <!-- Right Content Panel -->
-        <main class="w-3/4 flex flex-col">
-            <header class="border-b bg-white">
-                <nav class="flex">
-                    <a href="/" hx-get="/" hx-target="#content-area" hx-push-url="true" class="p-4 {{if eq .PageID "home"}}border-b-2 border-blue-500{{end}}">Home</a>
-                    <a href="/about" hx-get="/about" hx-target="#content-area" hx-push-url="true" class="p-4 {{if eq .PageID "about"}}border-b-2 border-blue-500{{end}}">About Me</a>
+        <main class="content-panel">
+            <header class="content-header">
+                <nav class="content-nav">
+                    <a href="/" hx-get="/" hx-target="#content-area" hx-push-url="true" class="{{if eq .PageID "home"}}active{{end}}">Home</a>
+                    <a href="/about" hx-get="/about" hx-target="#content-area" hx-push-url="true" class="{{if eq .PageID "about"}}active{{end}}">About Me</a>
                 </nav>
             </header>
-            <div id="content-area" class="p-8 overflow-y-auto flex-grow bg-white">
+            <div id="content-area" class="content-area">
                 {{if eq .PageID "home"}}
                     {{template "home.html" .}}
                 {{else if eq .PageID "about"}}

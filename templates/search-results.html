@@ -1,17 +1,17 @@
 {{define "search-results.html"}}
 <ul>
-  {{range .Posts}}
+  {{range .AllPosts}}
   <li>
     <a
       href="/posts/{{.Slug}}"
       hx-get="/posts/{{.Slug}}"
-      hx-target="#content-pane"
+      hx-target="#content-area"
       hx-push-url="true"
-      >{{.Title}}</a
     >
+      {{.Title}}
+      <span class="post-list-date">{{.Date}}</span>
+    </a>
   </li>
-  {{else}}
-  <li>No posts found.</li>
   {{end}}
 </ul>
 {{end}}

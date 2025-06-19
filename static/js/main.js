@@ -1,39 +1,87 @@
-/*
-  This script handles client-side interactivity for the blog.
-  1. Renders LaTeX equations using the KaTeX library.
-  2. Implements the "click-to-reveal" source for LaTeX blocks.
-*/
-
-// Run on initial page load
 document.addEventListener("DOMContentLoaded", () => {
+  // Initial setup on page load
+  setupModal();
   renderAllLatex();
+  updateActiveLink(window.location.pathname);
 });
 
-// htmx swaps content without a full page reload. This event listener
-// ensures that after new content is loaded into the page, we find
-// and render any new LaTeX blocks within that content.
+// htmx triggers this after any content swap
 document.body.addEventListener("htmx:afterSwap", function (evt) {
   renderAllLatex();
 });
 
-function renderAllLatex() {
-  // Find all divs with the 'latex-block' class that we create in our Go backend.
-  const latexBlocks = document.querySelectorAll(".latex-block");
+// htmx triggers this after a request, successful or not
+document.body.addEventListener("htmx:afterRequest", function (evt) {
+  // Update active link highlighting based on the request path
+  const path = evt.detail.pathInfo.requestPath;
+  updateActiveLink(path);
 
+  // If the request was from the search bar, show the modal
+  if (evt.detail.target.id === "modal-content") {
+    const modal = document.getElementById("search-modal");
+    modal.classList.remove("hidden");
+  }
+});
+
+function setupModal() {
+  const modal = document.getElementById("search-modal");
+  if (!modal) return;
+
+  const closeButton = modal.querySelector(".modal-close");
+
+  // Hide modal on close button click
+  closeButton.addEventListener("click", () => modal.classList.add("hidden"));
+
+  // Hide modal on clicking the overlay background
+  modal.addEventListener("click", (e) => {
+    if (e.target === modal) {
+      modal.classList.add("hidden");
+    }
+  });
+
+  // Hide modal on Escape key press
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && !modal.classList.contains("hidden")) {
+      modal.classList.add("hidden");
+    }
+  });
+}
+
+function updateActiveLink(path) {
+  // For top nav (Home, About)
+  const topNavLinks = document.querySelectorAll(".content-nav a");
+  topNavLinks.forEach((link) => {
+    if (link.getAttribute("href") === path) {
+      link.classList.add("active");
+    } else {
+      link.classList.remove("active");
+    }
+  });
+
+  // For explorer post list
+  const explorerLinks = document.querySelectorAll(".post-list a");
+  explorerLinks.forEach((link) => {
+    if (link.getAttribute("href") === path) {
+      link.classList.add("active");
+    } else {
+      link.classList.remove("active");
+    }
+  });
+}
+
+// ... The LaTeX functions (renderAllLatex, toggleLatexSource) are unchanged ...
+
+function renderAllLatex() {
+  const latexBlocks = document.querySelectorAll(".latex-block");
   latexBlocks.forEach((block) => {
-    // The raw LaTeX source is stored in the 'data-source' attribute.
     const latexSource = block.dataset.source;
-    if (latexSource) {
+    if (latexSource && !block.dataset.rendered) {
       try {
-        // Use the KaTeX library to render the math formula inside the div.
-        // This replaces the raw text with beautifully typeset math.
         katex.render(latexSource, block, {
           throwOnError: false,
-          displayMode: true, // Render as a block element
+          displayMode: true,
         });
-
-        // Add a click listener to the block to toggle the source code view.
-        // We add a 'data-listener-added' flag to prevent adding it multiple times.
+        block.dataset.rendered = "true";
         if (!block.dataset.listenerAdded) {
           block.addEventListener("click", () =>
             toggleLatexSource(block, latexSource),
@@ -41,7 +89,6 @@ function renderAllLatex() {
           block.dataset.listenerAdded = "true";
         }
       } catch (e) {
-        // If KaTeX fails, display an error message.
         block.innerHTML = `<p style="color:red;">Error rendering LaTeX: ${e.message}</p>`;
       }
     }
@@ -49,19 +96,15 @@ function renderAllLatex() {
 }
 
 function toggleLatexSource(block, source) {
-  // Check if the source code element already exists as the next sibling.
   let sourceEl = block.nextElementSibling;
-
   if (sourceEl && sourceEl.classList.contains("latex-source")) {
-    // If it exists, just toggle its visibility.
     sourceEl.style.display =
       sourceEl.style.display === "none" ? "block" : "none";
   } else {
-    // If it doesn't exist, create it.
     sourceEl = document.createElement("div");
     sourceEl.className = "latex-source";
+    sourceEl.style.display = "block";
     sourceEl.textContent = source;
-    // Insert the new source element right after the rendered LaTeX block.
     block.parentNode.insertBefore(sourceEl, block.nextSibling);
   }
 }

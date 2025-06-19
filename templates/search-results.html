@@ -1,17 +1,16 @@
 {{define "search-results.html"}}
 <ul>
-  {{range .Posts}}
-  <li>
-    <a
-      href="/posts/{{.Slug}}"
-      hx-get="/posts/{{.Slug}}"
-      hx-target="#content-area"
-      hx-push-url="true"
-    >
-      {{.Title}}
-      <span class="post-list-date">{{.Date}}</span>
-    </a>
-  </li>
-  {{end}}
+    {{range .Posts}}
+    <li>
+        <a href="/posts/{{.Slug}}" 
+           hx-get="/posts/{{.Slug}}" 
+           hx-target="#content-area" 
+           hx-push-url="true"
+           class="{{if and (eq $.PageID "post") (eq $.Content.Slug .Slug)}}active{{end}}">
+            {{.Title}}
+            <span class="post-list-date">{{.Date}}</span>
+        </a>
+    </li>
+    {{end}}
 </ul>
 {{end}}

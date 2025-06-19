@@ -13,18 +13,25 @@ import (
 	"strings"
 	"sync"
 
-	"github.comcom/gomarkdown/markdown"
+	"github.com/gomarkdown/markdown"
 	"github.com/gomarkdown/markdown/parser"
 	"gopkg.in/yaml.v2"
 )
 
 // --- Structs ---
 type Post struct {
-	Title       string    `yaml:"title"`
-	Date        string    `yaml:"date"`
-	Slug        string    `yaml:"-"`
-	RawContent  string    `yaml:"-"`
+	Title       string        `yaml:"title"`
+	Date        string        `yaml:"date"`
+	Slug        string        `yaml:"-"`
+	RawContent  string        `yaml:"-"`
 	HTMLContent template.HTML `yaml:"-"`
+}
+
+// New struct for rich search results
+type SearchResult struct {
+	Title   string
+	Slug    string
+	Snippet template.HTML // Highlighted content snippet
 }
 
 type BlogCache struct {
@@ -50,15 +57,11 @@ var (
 func main() {
 	purgeKey = os.Getenv("PURGE_KEY")
 	if purgeKey == "" {
-		log.Println("WARNING: PURGE_KEY environment variable not set. Cache purging will be disabled.")
+		log.Println("WARNING: PURGE_KEY environment variable not set.")
 	}
-
 	cache = &BlogCache{posts: make([]Post, 0)}
 	loadTemplates()
 	loadAndCachePosts()
-
-	// --- HTTP Handlers ---
-
 	fs := http.FileServer(http.Dir("./static"))
 	staticHandler := http.StripPrefix("/static/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if strings.HasSuffix(r.URL.Path, ".js") {
@@ -67,23 +70,87 @@ func main() {
 		fs.ServeHTTP(w, r)
 	}))
 	http.Handle("/static/", staticHandler)
-
 	http.HandleFunc("/", handleHome)
 	http.HandleFunc("/about", handleAbout)
 	http.HandleFunc("/posts/", handlePost)
-	http.HandleFunc("/search", handleSearch)
+	http.HandleFunc("/search-popup", handleSearchPopup) // Changed from /search
 	http.HandleFunc("/purge-cache", handlePurgeCache)
 	http.HandleFunc("/metrics-badge", handleMetricsBadge)
-
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = "8080"
-	}
+	port := os.Getenv("PORT"); if port == "" {port = "8080"}
 	log.Printf("Starting server on port %s...", port)
-	if err := http.ListenAndServe(":"+port, nil); err != nil {
-		log.Fatal(err)
+	if err := http.ListenAndServe(":"+port, nil); err != nil {log.Fatal(err)}
+}
+
+// --- Helper Functions ---
+
+// Creates a highlighted snippet from content.
+func createSnippet(content, query string) template.HTML {
+	lowerContent := strings.ToLower(content)
+	lowerQuery := strings.ToLower(query)
+	idx := strings.Index(lowerContent, lowerQuery)
+	if idx == -1 {
+		// If query not in content (e.g., it was in the title), return start of content
+		if len(content) > 150 {
+			return template.HTML(template.HTMLEscapeString(content[:150]) + "...")
+		}
+		return template.HTML(template.HTMLEscapeString(content))
+	}
+
+	start := idx - 75
+	if start < 0 {
+		start = 0
+	}
+	end := idx + len(query) + 75
+	if end > len(content) {
+		end = len(content)
+	}
+
+	snippet := content[start:end]
+	// Use case-insensitive replace to highlight the match
+	re := regexp.MustCompile(`(?i)` + regexp.QuoteMeta(query))
+	highlighted := re.ReplaceAllString(snippet, "<mark>$0</mark>")
+
+	prefix := ""; if start > 0 { prefix = "..." }
+	suffix := ""; if end < len(content) { suffix = "..." }
+
+	return template.HTML(prefix + highlighted + suffix)
+}
+
+// --- HTTP Handlers ---
+
+// NEW: Handles the search popup logic
+func handleSearchPopup(w http.ResponseWriter, r *http.Request) {
+	query := r.FormValue("q")
+	if len(query) < 2 { // Don't search for very short strings
+		fmt.Fprintf(w, "<p>Please enter at least 2 characters.</p>")
+		return
+	}
+
+	var results []SearchResult
+	cache.mu.RLock()
+	posts := cache.posts
+	cache.mu.RUnlock()
+
+	for _, post := range posts {
+		titleMatch := strings.Contains(strings.ToLower(post.Title), strings.ToLower(query))
+		contentMatch := strings.Contains(strings.ToLower(post.RawContent), strings.ToLower(query))
+
+		if titleMatch || contentMatch {
+			results = append(results, SearchResult{
+				Title:   post.Title,
+				Slug:    post.Slug,
+				Snippet: createSnippet(post.RawContent, query),
+			})
+		}
+	}
+
+	err := templates.ExecuteTemplate(w, "search-popup-results.html", map[string]interface{}{"Results": results, "Query": query})
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 }
+
+// ... The rest of the Go code (main.go) is unchanged ...
 
 func loadTemplates() {
 	funcMap := template.FuncMap{"safeHTML": func(s template.HTML) template.HTML { return s }}
@@ -126,6 +193,7 @@ func renderMarkdownAndLatex(raw string) []byte {
 
 func renderPage(w http.ResponseWriter, r *http.Request, data PageData, fragmentTemplate string) {
 	if r.Header.Get("HX-Request") == "true" {
+		w.Header().Set("HX-Push-Url", r.URL.Path) // Ensure browser URL updates on htmx nav
 		err := templates.ExecuteTemplate(w, fragmentTemplate, data); if err != nil {http.Error(w, err.Error(), http.StatusInternalServerError)}
 		return
 	}
@@ -146,18 +214,6 @@ func handlePost(w http.ResponseWriter, r *http.Request) {
 	if foundPost == nil {http.NotFound(w, r); return}
 	data := PageData{Title: foundPost.Title, Posts: cache.posts, Content: *foundPost, PageID: "post"}
 	renderPage(w, r, data, "post-content.html")
-}
-
-func handleSearch(w http.ResponseWriter, r *http.Request) {
-	query := r.FormValue("q"); var matchingPosts []Post; cache.mu.RLock()
-	if query != "" {
-		for _, post := range cache.posts {
-			if strings.Contains(strings.ToLower(post.Title), strings.ToLower(query)) || strings.Contains(strings.ToLower(post.RawContent), strings.ToLower(query)) {
-				matchingPosts = append(matchingPosts, post)
-			}
-		}
-	} else {matchingPosts = cache.posts}; cache.mu.RUnlock()
-	err := templates.ExecuteTemplate(w, "search-results.html", map[string]interface{}{"Posts": matchingPosts}); if err != nil {http.Error(w, err.Error(), http.StatusInternalServerError)}
 }
 
 func handlePurgeCache(w http.ResponseWriter, r *http.Request) {

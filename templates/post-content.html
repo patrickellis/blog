@@ -1,7 +1,8 @@
 {{define "post-content.html"}}
-<article>
-  <h1>{{.Title}}</h1>
-  <p><em>Published on {{.Date}}</em></p>
-  <div>{{.HTMLContent | safeHTML}}</div>
+<article class="prose lg:prose-xl">
+  <h1>{{ .Content.Title }}</h1>
+  <p class="text-gray-500 text-sm"><em>Published on {{ .Content.Date }}</em></p>
+  <hr class="my-4" />
+  <div>{{ .Content.HTMLContent }}</div>
 </article>
 {{end}}

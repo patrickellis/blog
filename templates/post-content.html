@@ -1,0 +1,7 @@
+{{define "post-content.html"}}
+<article>
+  <h1>{{.Title}}</h1>
+  <p><em>Published on {{.Date}}</em></p>
+  <div>{{.HTMLContent | safeHTML}}</div>
+</article>
+{{end}}

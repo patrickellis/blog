@@ -13,7 +13,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/gomarkdown/markdown"
+	"github.comcom/gomarkdown/markdown"
 	"github.com/gomarkdown/markdown/parser"
 	"gopkg.in/yaml.v2"
 )
@@ -33,10 +33,10 @@ type BlogCache struct {
 }
 
 type PageData struct {
-	Title    string
-	Posts []Post
-	Content  interface{}
-	PageID   string
+	Title   string
+	Posts   []Post
+	Content interface{}
+	PageID  string
 }
 
 // --- Globals ---
@@ -59,9 +59,14 @@ func main() {
 
 	// --- HTTP Handlers ---
 
-	// NEW: Add a file server for the /static directory
 	fs := http.FileServer(http.Dir("./static"))
-	http.Handle("/static/", http.StripPrefix("/static/", fs))
+	staticHandler := http.StripPrefix("/static/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if strings.HasSuffix(r.URL.Path, ".js") {
+			w.Header().Set("Content-Type", "application/javascript")
+		}
+		fs.ServeHTTP(w, r)
+	}))
+	http.Handle("/static/", staticHandler)
 
 	http.HandleFunc("/", handleHome)
 	http.HandleFunc("/about", handleAbout)
@@ -80,14 +85,10 @@ func main() {
 	}
 }
 
-// ... (The rest of your main.go handlers are unchanged) ...
-
 func loadTemplates() {
 	funcMap := template.FuncMap{"safeHTML": func(s template.HTML) template.HTML { return s }}
 	tpl, err := template.New("").Funcs(funcMap).ParseGlob("templates/*.html")
-	if err != nil {
-		log.Fatalf("Error parsing templates: %v", err)
-	}
+	if err != nil {log.Fatalf("Error parsing templates: %v", err)}
 	templates = tpl
 }
 
@@ -141,7 +142,7 @@ func handleAbout(w http.ResponseWriter, r *http.Request) {
 
 func handlePost(w http.ResponseWriter, r *http.Request) {
 	slug := strings.TrimPrefix(r.URL.Path, "/posts/"); cache.mu.RLock(); var foundPost *Post
-	for _, p := range cache.posts {if p.Slug == slug {foundPost = &p; break}}; cache.mu.RUnlock()
+	for i := range cache.posts {if cache.posts[i].Slug == slug {foundPost = &cache.posts[i]; break}}; cache.mu.RUnlock()
 	if foundPost == nil {http.NotFound(w, r); return}
 	data := PageData{Title: foundPost.Title, Posts: cache.posts, Content: *foundPost, PageID: "post"}
 	renderPage(w, r, data, "post-content.html")

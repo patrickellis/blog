@@ -1,21 +1,25 @@
 document.addEventListener("DOMContentLoaded", () => {
+  // Initial setup on page load
   setupModal();
   renderAllLatex();
-  updateActiveLink(window.location.pathname);
+  updateActiveLinks(window.location.pathname);
 });
 
+// A single, robust event listener for all htmx content swaps
 document.body.addEventListener("htmx:afterSwap", function (evt) {
-  // This is the key event for dynamic content. We re-render LaTeX after
-  // any htmx content swap (like loading a new post).
+  // Re-render LaTeX for any new content that has appeared
   renderAllLatex();
-});
 
-document.body.addEventListener("htmx:afterRequest", function (evt) {
-  const path = evt.detail.pathInfo.requestPath;
-  updateActiveLink(path);
+  // The URL in the browser bar has been updated by hx-push-url, so we use it as the source of truth.
+  updateActiveLinks(window.location.pathname);
+
+  // Check if the content that was just swapped in was for the modal
+  // evt.detail.target is the element that received the new content
   if (evt.detail.target.id === "modal-content") {
     const modal = document.getElementById("search-modal");
-    modal.classList.remove("hidden");
+    if (modal) {
+      modal.classList.remove("hidden");
+    }
   }
 });
 
@@ -25,7 +29,9 @@ function setupModal() {
   const closeButton = modal.querySelector(".modal-close");
   closeButton.addEventListener("click", () => modal.classList.add("hidden"));
   modal.addEventListener("click", (e) => {
-    if (e.target === modal) modal.classList.add("hidden");
+    if (e.target === modal) {
+      modal.classList.add("hidden");
+    }
   });
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape" && !modal.classList.contains("hidden")) {
@@ -34,7 +40,8 @@ function setupModal() {
   });
 }
 
-function updateActiveLink(path) {
+function updateActiveLinks(path) {
+  // Top navigation tabs
   const topNavLinks = document.querySelectorAll(".content-nav a");
   topNavLinks.forEach((link) => {
     if (link.getAttribute("href") === path) {
@@ -43,6 +50,8 @@ function updateActiveLink(path) {
       link.classList.remove("active");
     }
   });
+
+  // Explorer post list
   const explorerLinks = document.querySelectorAll(".post-list a");
   explorerLinks.forEach((link) => {
     if (link.getAttribute("href") === path) {
@@ -53,9 +62,7 @@ function updateActiveLink(path) {
   });
 }
 
-// UPDATED: This function now renders both block and inline LaTeX.
 function renderAllLatex() {
-  // Render block-level math
   const latexBlocks = document.querySelectorAll(".latex-block");
   latexBlocks.forEach((block) => {
     const latexSource = block.dataset.source;
@@ -78,19 +85,16 @@ function renderAllLatex() {
     }
   });
 
-  // Render inline math
   const latexInlines = document.querySelectorAll(".latex-inline");
   latexInlines.forEach((span) => {
     const latexSource = span.dataset.source;
     if (latexSource && !span.dataset.rendered) {
       try {
-        // Use `displayMode: false` for inline math
         katex.render(latexSource, span, {
           throwOnError: false,
           displayMode: false,
         });
         span.dataset.rendered = "true";
-        // No click-to-reveal for inline math to avoid cluttering paragraphs.
       } catch (e) {
         span.textContent = `[LaTeX Error: ${e.message}]`;
         span.style.color = "red";

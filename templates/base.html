@@ -12,7 +12,6 @@
 </head>
 <body>
     <div class="site-wrapper">
-        <!-- Left Explorer Panel -->
         <aside class="explorer">
             <h2>Explorer</h2>
             <div class="search-bar">
@@ -26,9 +25,12 @@
             <nav id="post-list" class="post-list">
                 {{ template "search-results.html" . }}
             </nav>
+            <!-- The footer is now here -->
+            <footer class="explorer-footer">
+                <img src="/metrics-badge" alt="Render Time">
+            </footer>
         </aside>
 
-        <!-- Right Content Panel -->
         <main class="content-panel">
             <header class="content-header">
                 <nav class="content-nav">
@@ -41,13 +43,10 @@
                 {{if eq .PageID "about"}}{{template "about.html" .}}{{end}}
                 {{if eq .PageID "post"}}{{template "post-content.html" .}}{{end}}
             </div>
-            <footer class="content-footer">
-                <img src="/metrics-badge" alt="Render Time">
-            </footer>
+             <!-- The footer has been removed from here -->
         </main>
     </div>
 
-    <!-- Search Popup Modal -->
     <div id="search-modal" class="modal-overlay hidden">
         <div class="modal-box">
             <button class="modal-close">&times;</button>

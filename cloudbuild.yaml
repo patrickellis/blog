@@ -19,8 +19,8 @@ steps:
     args:
       - "storage"
       - "rsync"
-      - "--delete-unmatched-destination-objects" # <-- This is the correct flag
-      - "dist/" # Sync the contents of the dist directory
+      - "-r"
+      - "dist/"
       - "gs://${_BUCKET_NAME}"
     id: "deploy-to-gcs"
     waitFor: ["astro-build"]
@@ -39,7 +39,6 @@ steps:
 
 substitutions:
   _BUCKET_NAME: "astro-blog"
-  # IMPORTANT: Make sure this value is your real URL map name
   _URL_MAP_NAME: "blog-lb"
 
 options:

@@ -64,6 +64,7 @@ const recentPosts = posts.slice(0, 5);
 										<h3 class="title">{post.data.title}</h3>
 										<p class="description">{post.data.description}</p>
 										<FormattedDate date={post.data.pubDate} />
+										{(post.data as any).category && <div class="category-tag">{(post.data as any).category}</div>}
 									</a>
 								</li>
 							))
@@ -98,7 +99,6 @@ const recentPosts = posts.slice(0, 5);
 		</main>
 		<Footer />
 		<script>
-			<script>
 			import Fuse from 'fuse.js';
 			const postsData = document.getElementById('posts-data');
 			const posts = postsData ? JSON.parse(postsData.textContent || '[]') : [];
@@ -110,58 +110,50 @@ const recentPosts = posts.slice(0, 5);
 			});
 
 			const searchInput = document.getElementById('search-input') as HTMLInputElement;
-			const defaultLayout = document.getElementById('default-layout');
-			const searchResultsContainer = document.getElementById('search-results-container');
-			const searchResultsList = document.getElementById('search-results-list');
+			const postList = document.getElementById('post-list');
+			if (postList) {
+				const originalOrder = Array.from(postList.children);
 
-			function displayResults(results) {
-				if (!searchResultsList || !defaultLayout || !searchResultsContainer) return;
+				function filterPosts(query: string) {
+					if (!postList) return;
+					if (query.trim() === '') {
+						// Restore original order and show all
+						originalOrder.forEach(child => {
+							if (postList) {
+								postList.appendChild(child)
+							}
+						});
+						postList.childNodes.forEach(li => {
+							const listItem = li as HTMLElement;
+							if(listItem.style) listItem.style.display = 'block';
+						});
+						return;
+					}
 
-				searchResultsList.innerHTML = '';
-				if (results.length === 0) {
-					searchResultsList.innerHTML = '<li>No results found.</li>';
-				} else {
-					results.forEach(result => {
-						const post = result.item;
-						const listItem = document.createElement('li');
-						listItem.classList.add('post-list-item');
-						listItem.innerHTML = `
-							<a href="/blog/${post.id}/">
-								<h3 class="title">${post.data.title}</h3>
-								<p class="description">${post.data.description}</p>
-								<small>${new Date(post.data.pubDate).toLocaleDateString()}</small>
-							</a>
-						`;
-						searchResultsList.appendChild(listItem);
+					const results = fuse.search(query);
+					const matchedSlugs = new Set(results.map(r => (r.item as any).slug));
+
+					postList.childNodes.forEach(li => {
+						const listItem = li as HTMLElement;
+						if (listItem.dataset && matchedSlugs.has(listItem.dataset.slug)) {
+							listItem.style.display = 'block';
+						} else if (listItem.style) {
+							listItem.style.display = 'none';
+						}
 					});
 				}
-				defaultLayout.style.display = 'none';
-				searchResultsContainer.style.display = 'block';
-			}
 
-			function displayDefault() {
-				if (!searchResultsList || !defaultLayout || !searchResultsContainer) return;
-				searchResultsContainer.style.display = 'none';
-				defaultLayout.style.display = 'grid';
-			}
+				const urlParams = new URLSearchParams(window.location.search);
+				const query = urlParams.get('q');
 
-			const urlParams = new URLSearchParams(window.location.search);
-			const query = urlParams.get('q');
-			if (query) {
-				searchInput.value = query;
-				const results = fuse.search(query);
-				displayResults(results);
-			}
-
-			searchInput.addEventListener('input', (e) => {
-				const query = (e.target as HTMLInputElement).value;
-				if (query.trim() === '') {
-					displayDefault();
-					return;
+				if (query) {
+					searchInput.value = query;
+					filterPosts(query);
 				}
-				const results = fuse.search(query);
-				displayResults(results);
-			});
-		</script>
+
+				searchInput.addEventListener('input', (e) => {
+					filterPosts((e.target as HTMLInputElement).value);
+				});
+			}
 		</script>
 	</body>

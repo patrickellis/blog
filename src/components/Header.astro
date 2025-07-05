@@ -74,12 +74,20 @@ const sortedTags = Object.entries(tagCounts).sort((a, b) => b[1] - a[1]).map(ent
 		}
 	}
 	.search-container {
-		margin: 0 1em;
+		flex-grow: 1;
+		margin: 0 1.5em;
 	}
 	#search-input {
-		padding: 0.5em;
-		border-radius: 4px;
-		border: 1px solid #ccc;
+		width: 100%;
+		padding: 0.6em 0.8em;
+		border-radius: 8px;
+		border: 1px solid #ddd;
+		transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+	}
+	#search-input:focus {
+		border-color: #aaa;
+		box-shadow: 0 0 5px rgba(0,0,0,0.1);
+		outline: none;
 	}
 	.tag-nav {
 		display: flex;

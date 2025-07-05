@@ -8,7 +8,7 @@ import { Image } from 'astro:assets';
 
 type Props = CollectionEntry<'blog'>['data'];
 
-const { title, description, pubDate, updatedDate, heroImage } = Astro.props;
+const { title, description, pubDate, updatedDate, heroImage, category } = Astro.props as any;
 ---
 
 <html lang="en">
@@ -51,6 +51,10 @@ const { title, description, pubDate, updatedDate, heroImage } = Astro.props;
 			.last-updated-on {
 				font-style: italic;
 			}
+			.tag {
+				text-align: center;
+				margin-bottom: 1em;
+			}
 		</style>
 	</head>
 
@@ -76,6 +80,11 @@ const { title, description, pubDate, updatedDate, heroImage } = Astro.props;
 						<h1>{title}</h1>
 						<hr />
 					</div>
+					{category && (
+						<div class="tag">
+							<a href={`/tags/${category}`} class="category-tag">{category}</a>
+						</div>
+					)}
 					<slot />
 				</div>
 			</article>

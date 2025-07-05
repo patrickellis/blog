@@ -20,8 +20,6 @@ export async function getStaticPaths() {
 
 const { tag } = Astro.params;
 const { posts } = Astro.props;
-
-const recentPosts = posts.slice(0, 5);
 ---
 
 <!doctype html>
@@ -53,10 +51,10 @@ const recentPosts = posts.slice(0, 5);
 		<Header />
 		<main class="grid-container" style="flex-grow: 1;">
 			<section>
-				<h2>Recent in "{tag}"</h2>
+				<h2>Posts tagged with "{tag}"</h2>
 				<ul>
 					{
-						recentPosts.map((post) => (
+						posts.map((post) => (
 							<li class="post-list-item">
 								<a href={`/blog/${post.id}/`}>
 									<h3 class="title">{post.data.title}</h3>
@@ -69,7 +67,7 @@ const recentPosts = posts.slice(0, 5);
 				</ul>
 			</section>
 			<aside>
-				<h2>Index</h2>
+				<h2>Index of "{tag}"</h2>
 				<ul class="index-list">
 					{
 						posts.map((post) => (

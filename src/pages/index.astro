@@ -26,9 +26,18 @@ const recentPosts = posts.slice(0, 5);
 			.post-list-item {
 				margin-bottom: 2em;
 			}
+			.post-list-item a {
+				text-decoration: none;
+				color: inherit;
+			}
+			.post-list-item:hover {
+				cursor: pointer;
+			}
 			.post-list-item .title {
 				font-size: 1.5em;
 				margin-bottom: 0.5em;
+				color: blue;
+				text-decoration: underline;
 			}
 			.post-list-item .description {
 				color: #666;

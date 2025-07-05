@@ -21,7 +21,7 @@ const sortedTags = Object.entries(tagCounts).sort((a, b) => b[1] - a[1]).map(ent
 			<HeaderLink href="/about">About</HeaderLink>
 		</div>
 		<div class="search-container">
-			<form action="/" method="get">
+			<form action="/" method="get" onsubmit="return false;">
 				<input type="text" name="q" id="search-input" placeholder="Search posts..." />
 			</form>
 		</div>

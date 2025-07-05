@@ -52,44 +52,53 @@ const recentPosts = posts.slice(0, 5);
 	</head>
 	<body style="display: flex; flex-direction: column; min-height: 100vh;">
 		<Header />
-		<main class="grid-container" style="flex-grow: 1;">
-			<section>
-				<h2>Recent</h2>
-				<ul>
-					{
-						recentPosts.map((post) => (
-							<li class="post-list-item">
-								<a href={`/blog/${post.id}/`}>
-									<h3 class="title">{post.data.title}</h3>
-									<p class="description">{post.data.description}</p>
-									<FormattedDate date={post.data.pubDate} />
-								</a>
-							</li>
-						))
-					}
+		<main>
+			<div id="default-layout" class="grid-container">
+				<section>
+					<h2>Recent</h2>
+					<ul class="post-list">
+						{
+							recentPosts.map((post) => (
+								<li class="post-list-item">
+									<a href={`/blog/${post.id}/`}>
+										<h3 class="title">{post.data.title}</h3>
+										<p class="description">{post.data.description}</p>
+										<FormattedDate date={post.data.pubDate} />
+									</a>
+								</li>
+							))
+						}
+					</ul>
+				</section>
+				<aside>
+					<h2>Index</h2>
+					<ul id="post-index-list" class="index-list">
+						{
+							posts.map((post) => (
+								<li data-id={post.id}>
+									<a href={`/blog/${post.id}/`}>
+										{post.data.title}
+									</a>
+									<br />
+									<small>
+										<FormattedDate date={post.data.pubDate} />
+									</small>
+								</li>
+							))
+						}
+					</ul>
+				</aside>
+			</div>
+			<div id="search-results-container" style="display: none;">
+				<h2>Search Results</h2>
+				<ul id="search-results-list" class="post-list">
+					<!-- Search results will be injected here -->
 				</ul>
-			</section>
-			<aside>
-				<h2>Index</h2>
-				<ul id="post-index-list" class="index-list">
-					{
-						posts.map((post) => (
-							<li data-id={post.id}>
-								<a href={`/blog/${post.id}/`}>
-									{post.data.title}
-								</a>
-								<br />
-								<small>
-									<FormattedDate date={post.data.pubDate} />
-								</small>
-							</li>
-						))
-					}
-				</ul>
-			</aside>
+			</div>
 		</main>
 		<Footer />
 		<script>
+			<script>
 			import Fuse from 'fuse.js';
 			const postsData = document.getElementById('posts-data');
 			const posts = postsData ? JSON.parse(postsData.textContent || '[]') : [];
@@ -101,32 +110,58 @@ const recentPosts = posts.slice(0, 5);
 			});
 
 			const searchInput = document.getElementById('search-input') as HTMLInputElement;
-			const postIndexList = document.getElementById('post-index-list');
+			const defaultLayout = document.getElementById('default-layout');
+			const searchResultsContainer = document.getElementById('search-results-container');
+			const searchResultsList = document.getElementById('search-results-list');
 
-			if (postIndexList) {
-				const allPosts = Array.from(postIndexList.children);
+			function displayResults(results) {
+				if (!searchResultsList || !defaultLayout || !searchResultsContainer) return;
 
-				searchInput.addEventListener('input', (e) => {
-					const query = (e.target as HTMLInputElement).value;
-					if (query.trim() === '') {
-						allPosts.forEach(post => {
-							(post as HTMLElement).style.display = 'list-item';
-						});
-						return;
-					}
-
-					const results = fuse.search(query);
-					const matchedIds = new Set(results.map(r => (r.item as any).id));
-
-					allPosts.forEach(post => {
-						const postElement = post as HTMLElement;
-						if (postElement.dataset.id && matchedIds.has(postElement.dataset.id)) {
-							postElement.style.display = 'list-item';
-						} else {
-							postElement.style.display = 'none';
-						}
+				searchResultsList.innerHTML = '';
+				if (results.length === 0) {
+					searchResultsList.innerHTML = '<li>No results found.</li>';
+				} else {
+					results.forEach(result => {
+						const post = result.item;
+						const listItem = document.createElement('li');
+						listItem.classList.add('post-list-item');
+						listItem.innerHTML = `
+							<a href="/blog/${post.id}/">
+								<h3 class="title">${post.data.title}</h3>
+								<p class="description">${post.data.description}</p>
+								<small>${new Date(post.data.pubDate).toLocaleDateString()}</small>
+							</a>
+						`;
+						searchResultsList.appendChild(listItem);
 					});
-				});
+				}
+				defaultLayout.style.display = 'none';
+				searchResultsContainer.style.display = 'block';
 			}
+
+			function displayDefault() {
+				if (!searchResultsList || !defaultLayout || !searchResultsContainer) return;
+				searchResultsContainer.style.display = 'none';
+				defaultLayout.style.display = 'grid';
+			}
+
+			const urlParams = new URLSearchParams(window.location.search);
+			const query = urlParams.get('q');
+			if (query) {
+				searchInput.value = query;
+				const results = fuse.search(query);
+				displayResults(results);
+			}
+
+			searchInput.addEventListener('input', (e) => {
+				const query = (e.target as HTMLInputElement).value;
+				if (query.trim() === '') {
+					displayDefault();
+					return;
+				}
+				const results = fuse.search(query);
+				displayResults(results);
+			});
+		</script>
 		</script>
 	</body>

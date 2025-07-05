@@ -62,10 +62,10 @@ const recentPosts = posts.slice(0, 5);
 			</section>
 			<aside>
 				<h2>Index</h2>
-				<ul class="index-list">
+				<ul id="post-index-list" class="index-list">
 					{
 						posts.map((post) => (
-							<li>
+							<li data-id={post.id}>
 								<a href={`/blog/${post.id}/`}>
 									{post.data.title}
 								</a>
@@ -82,7 +82,8 @@ const recentPosts = posts.slice(0, 5);
 		<Footer />
 		<script>
 			import Fuse from 'fuse.js';
-			const posts = JSON.parse(document.getElementById('posts-data').textContent);
+			const postsData = document.getElementById('posts-data');
+			const posts = postsData ? JSON.parse(postsData.textContent || '[]') : [];
 			
 			const fuse = new Fuse(posts, {
 				keys: ['data.title', 'data.description', 'body'],
@@ -91,41 +92,32 @@ const recentPosts = posts.slice(0, 5);
 			});
 
 			const searchInput = document.getElementById('search-input') as HTMLInputElement;
-			const postList = document.getElementById('post-list');
-			const originalOrder = Array.from(postList.children);
+			const postIndexList = document.getElementById('post-index-list');
 
-			const urlParams = new URLSearchParams(window.location.search);
-			const query = urlParams.get('q');
-			if (query) {
-				searchInput.value = query;
-				filterPosts(query);
-			}
+			if (postIndexList) {
+				const allPosts = Array.from(postIndexList.children);
 
-			searchInput.addEventListener('input', (e) => {
-				filterPosts((e.target as HTMLInputElement).value);
-			});
-
-			function filterPosts(query: string) {
-				if (query.trim() === '') {
-					// Restore original order and show all
-					originalOrder.forEach(child => postList.appendChild(child));
-					postList.childNodes.forEach(li => {
-						if(li.style) li.style.display = 'block';
-					});
-					return;
-				}
-
-				const results = fuse.search(query);
-				const matchedSlugs = new Set(results.map(r => r.item.slug));
-
-				postList.childNodes.forEach(li => {
-					if (li.dataset && matchedSlugs.has(li.dataset.slug)) {
-						li.style.display = 'block';
-					} else if (li.style) {
-						li.style.display = 'none';
+				searchInput.addEventListener('input', (e) => {
+					const query = (e.target as HTMLInputElement).value;
+					if (query.trim() === '') {
+						allPosts.forEach(post => {
+							(post as HTMLElement).style.display = 'list-item';
+						});
+						return;
 					}
+
+					const results = fuse.search(query);
+					const matchedIds = new Set(results.map(r => (r.item as any).id));
+
+					allPosts.forEach(post => {
+						const postElement = post as HTMLElement;
+						if (postElement.dataset.id && matchedIds.has(postElement.dataset.id)) {
+							postElement.style.display = 'list-item';
+						} else {
+							postElement.style.display = 'none';
+						}
+					});
 				});
 			}
 		</script>
 	</body>
-</html>

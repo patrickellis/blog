@@ -10,57 +10,36 @@ const posts = (await getCollection('blog')).sort(
 	(a, b) => new Date(b.data.pubDate).valueOf() - new Date(a.data.pubDate).valueOf()
 );
 
-const recentPosts = posts.slice(0, 5);
+const cleanPosts = posts.map(post => ({
+  id: post.id,
+  slug: post.slug,
+  data: post.data,
+  body: post.body
+}));
+
+const recentPosts = posts.slice(0, 10);
 ---
 
 <!doctype html>
 <html lang="en">
 	<head>
 		<BaseHead title={SITE_TITLE} description={SITE_DESCRIPTION} />
-		<style>
-			.grid-container {
-				display: grid;
-				grid-template-columns: 4fr 1fr;
-				gap: 2em;
-			}
-			.post-list-item {
-				margin-bottom: 2em;
-			}
-			.post-list-item a {
-				text-decoration: none;
-				color: inherit;
-			}
-			.post-list-item:hover {
-				cursor: pointer;
-			}
-			.post-list-item .title {
-				font-size: 1.5em;
-				margin-bottom: 0.5em;
-				color: blue;
-				text-decoration: underline;
-			}
-			.post-list-item .description {
-				color: #666;
-			}
-			.index-list li {
-				margin-bottom: 0.5em;
-			}
-		</style>
-	<script id="posts-data" type="application/json" is:inline>
-			{JSON.stringify(posts)}
+		<script id="posts-data" type="application/json">
+			{JSON.stringify(cleanPosts)}
 		</script>
 	</head>
 	<body style="display: flex; flex-direction: column; min-height: 100vh;">
 		<Header />
 		<main>
 			<div id="default-layout" class="grid-container">
-				<section>
+				<section class="main-column">
 					<h2>Recent</h2>
-					<ul class="post-list">
+					<h3 id="search-subtitle" style="display: none; font-size: 0.9em; color: #666;"></h3>
+					<ul id="recent-posts-list" class="post-list">
 						{
 							recentPosts.map((post) => (
 								<li class="post-list-item">
-									<a href={`/blog/${post.id}/`}>
+									<a href={`/blog/${post.id}`}>
 										<h3 class="title">{post.data.title}</h3>
 										<p class="description">{post.data.description}</p>
 										<FormattedDate date={post.data.pubDate} />
@@ -70,14 +49,17 @@ const recentPosts = posts.slice(0, 5);
 							))
 						}
 					</ul>
+					<ul id="search-results-list" class="post-list" style="display: none;">
+						<!-- Search results will be injected here -->
+					</ul>
 				</section>
-				<aside>
+				<aside class="sidebar-column">
 					<h2>Index</h2>
 					<ul id="post-index-list" class="index-list">
 						{
 							posts.map((post) => (
 								<li data-id={post.id}>
-									<a href={`/blog/${post.id}/`}>
+									<a href={`/blog/${post.id}`}>
 										{post.data.title}
 									</a>
 									<br />
@@ -90,69 +72,107 @@ const recentPosts = posts.slice(0, 5);
 					</ul>
 				</aside>
 			</div>
-			<div id="search-results-container" style="display: none;">
-				<h2>Search Results</h2>
-				<ul id="search-results-list" class="post-list">
-					<!-- Search results will be injected here -->
-				</ul>
-			</div>
 		</main>
 		<Footer />
+		<script src="https://cdn.jsdelivr.net/npm/fuse.js@7.0.0"></script>
+		<script define:vars={{ posts: cleanPosts }}>
+			window.posts = posts;
+		</script>
 		<script>
 			import Fuse from 'fuse.js';
-			const postsData = document.getElementById('posts-data');
-			const posts = postsData ? JSON.parse(postsData.textContent || '[]') : [];
-			
+
+			const posts = window.posts || [];
+
 			const fuse = new Fuse(posts, {
 				keys: ['data.title', 'data.description', 'body'],
 				includeScore: true,
+				includeMatches: true,
 				threshold: 0.4,
 			});
 
-			const searchInput = document.getElementById('search-input') as HTMLInputElement;
-			const postList = document.getElementById('post-list');
-			if (postList) {
-				const originalOrder = Array.from(postList.children);
+			const searchInput = document.getElementById('search-input');
+			const recentPostsList = document.getElementById('recent-posts-list');
+			const searchResultsList = document.getElementById('search-results-list');
+			const searchSubtitle = document.getElementById('search-subtitle');
 
-				function filterPosts(query: string) {
-					if (!postList) return;
-					if (query.trim() === '') {
-						// Restore original order and show all
-						originalOrder.forEach(child => {
-							if (postList) {
-								postList.appendChild(child)
-							}
-						});
-						postList.childNodes.forEach(li => {
-							const listItem = li as HTMLElement;
-							if(listItem.style) listItem.style.display = 'block';
-						});
-						return;
-					}
+			function highlight(text, indices) {
+				let result = '';
+				let lastIndex = 0;
+				indices.forEach(([start, end]) => {
+					result += text.substring(lastIndex, start);
+					result += `<mark>${text.substring(start, end + 1)}</mark>`;
+					lastIndex = end + 1;
+				});
+				result += text.substring(lastIndex);
+				return result;
+			}
 
-					const results = fuse.search(query);
-					const matchedSlugs = new Set(results.map(r => (r.item as any).slug));
+			function displayResults(query, results) {
+				if (!searchResultsList || !recentPostsList || !searchSubtitle) return;
 
-					postList.childNodes.forEach(li => {
-						const listItem = li as HTMLElement;
-						if (listItem.dataset && matchedSlugs.has(listItem.dataset.slug)) {
-							listItem.style.display = 'block';
-						} else if (listItem.style) {
-							listItem.style.display = 'none';
+				searchResultsList.innerHTML = '';
+				if (results.length === 0) {
+					searchResultsList.innerHTML = '<li>No results found.</li>';
+				} else {
+					results.forEach(result => {
+						const post = result.item;
+						let title = post.data.title;
+						let description = post.data.description;
+
+						const titleMatch = result.matches.find(m => m.key === 'data.title');
+						if (titleMatch) {
+							title = highlight(title, titleMatch.indices);
 						}
+
+						const descriptionMatch = result.matches.find(m => m.key === 'data.description');
+						if (descriptionMatch) {
+							description = highlight(description, descriptionMatch.indices);
+						}
+
+						const listItem = document.createElement('li');
+						listItem.classList.add('post-list-item');
+						listItem.innerHTML = `
+							<a href="/blog/${post.slug}/">
+								<h3 class="title">${title}</h3>
+								<p class="description">${description}</p>
+								<small>${new Date(post.data.pubDate).toLocaleDateString()}</small>
+							</a>
+						`;
+						searchResultsList.appendChild(listItem);
 					});
 				}
+				searchSubtitle.textContent = `Showing matches for query '${query}'`;
+				searchSubtitle.style.display = 'block';
+				recentPostsList.style.display = 'none';
+				searchResultsList.style.display = 'block';
+			}
 
+			function displayDefault() {
+				if (!searchResultsList || !recentPostsList || !searchSubtitle) return;
+				searchSubtitle.style.display = 'none';
+				searchResultsList.style.display = 'none';
+				recentPostsList.style.display = 'block';
+			}
+
+			if (searchInput instanceof HTMLInputElement) {
 				const urlParams = new URLSearchParams(window.location.search);
 				const query = urlParams.get('q');
-
 				if (query) {
 					searchInput.value = query;
-					filterPosts(query);
+					const results = fuse.search(query);
+					displayResults(query, results);
 				}
 
 				searchInput.addEventListener('input', (e) => {
-					filterPosts((e.target as HTMLInputElement).value);
+					if (e.target instanceof HTMLInputElement) {
+						const query = e.target.value;
+						if (query.trim() === '') {
+							displayDefault();
+							return;
+						}
+						const results = fuse.search(query);
+						displayResults(query, results);
+					}
 				});
 			}
 		</script>

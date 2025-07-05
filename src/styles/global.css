@@ -30,7 +30,7 @@ main {
   /* This centers the content and constrains its width */
   max-width: 960px;
   margin: 0 auto;
-  padding: 2rem; /* Equivalent to p-8 */
+  padding: 2rem;
 }
 
 h1,
@@ -43,7 +43,7 @@ h4 {
 
 h1 {
   font-size: 2.5rem; /* ~40px */
-  margin-bottom: 3rem; /* ~48px */
+  margin-bottom: 1rem; /* ~48px */
 }
 
 h2 {
@@ -69,13 +69,24 @@ ul {
 }
 
 /* 3. BLOG POST LIST STYLES */
+.grid-container > section {
+  min-width: 500px;
+  max-width: 500px;
+}
+
+.post-list {
+  width: 100%;
+}
+
 .post-list-item {
-  margin-bottom: 3rem; /* Spacing between posts */
+  width: 100%;
+  margin-bottom: 1rem; /* Spacing between posts */
+  overflow-wrap: break-word;
 }
 
 .post-title {
   margin-top: 0.75rem;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.1rem;
 }
 
 .post-description {
@@ -119,4 +130,40 @@ ul {
 .category-tag.default {
   background-color: var(--tag-default-bg);
   color: var(--tag-default-text);
+}
+
+.grid-container {
+  display: grid;
+  grid-template-columns: 75% 1fr;
+  gap: 2em;
+}
+
+.post-list-item a {
+  text-decoration: none;
+  color: inherit;
+}
+
+.post-list-item:hover {
+  cursor: pointer;
+}
+
+.post-list-item .title {
+  font-size: 1.5em;
+  margin-bottom: 0.1em;
+  color: blue;
+  text-decoration: underline;
+}
+
+.post-list-item .description {
+  color: #666;
+}
+
+.index-list li {
+  margin-bottom: 0.1em;
+}
+
+mark {
+  background-color: yellow;
+  border-radius: 2px;
+  padding: 0.1em 0;
 }

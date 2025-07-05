@@ -10,12 +10,11 @@ const tagCounts: { [key: string]: number } = posts.reduce((counts: { [key: strin
 	return counts;
 }, {});
 
-const sortedTags = Object.entries(tagCounts).sort((a, b) => b[1] - a[1]).map(entry => entry[0]);
+const sortedTags = Object.entries(tagCounts).sort((a, b) => b[1] - a[1]);
 ---
 
 <header>
 	<nav>
-		<h2><a href="/">{SITE_TITLE}</a></h2>
 		<div class="internal-links">
 			<HeaderLink href="/">Home</HeaderLink>
 			<HeaderLink href="/about">About</HeaderLink>
@@ -28,8 +27,8 @@ const sortedTags = Object.entries(tagCounts).sort((a, b) => b[1] - a[1]).map(ent
 		
 	</nav>
 	<nav class="tag-nav">
-		{sortedTags.map(tag => (
-			<a href={`/tags/${tag}`}>{tag}</a>
+		{sortedTags.map(([tag, count]) => (
+			<a href={`/tags/${tag}`}>{tag} ({count})</a>
 		))}
 	</nav>
 </header>

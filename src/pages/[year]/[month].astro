@@ -34,26 +34,6 @@ const { posts } = Astro.props;
 <html lang="en">
 	<head>
 		<BaseHead title={`${SITE_TITLE} - ${year}/${month}`} description={`Posts from ${year}/${month}`} />
-		<style>
-			.grid-container {
-				display: grid;
-				grid-template-columns: 4fr 1fr;
-				gap: 2em;
-			}
-			.post-list-item {
-				margin-bottom: 2em;
-			}
-			.post-list-item .title {
-				font-size: 1.5em;
-				margin-bottom: 0.5em;
-			}
-			.post-list-item .description {
-				color: #666;
-			}
-			.index-list li {
-				margin-bottom: 0.5em;
-			}
-		</style>
 	</head>
 	<body style="display: flex; flex-direction: column; min-height: 100vh;">
 		<Header />
@@ -65,7 +45,7 @@ const { posts } = Astro.props;
 					{
 						posts.map((post) => (
 							<li class="post-list-item">
-								<a href={`/blog/${post.id}/`}>
+								<a href={`/blog/${post.id}`}>
 									<h3 class="title">{post.data.title}</h3>
 									<p class="description">{post.data.description}</p>
 									<FormattedDate date={post.data.pubDate} />
@@ -81,7 +61,7 @@ const { posts } = Astro.props;
 					{
 						posts.map((post) => (
 							<li>
-								<a href={`/blog/${post.id}/`}>
+								<a href={`/blog/${post.id}`}>
 									{post.data.title}
 								</a>
 								<br />

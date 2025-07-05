@@ -1,6 +1,16 @@
 ---
 import HeaderLink from './HeaderLink.astro';
 import { SITE_TITLE } from '../consts';
+import { getCollection } from 'astro:content';
+
+const posts = await getCollection('blog');
+const tagCounts: { [key: string]: number } = posts.reduce((counts: { [key: string]: number }, post) => {
+	const tag = (post.data as any).category || 'general';
+	counts[tag] = (counts[tag] || 0) + 1;
+	return counts;
+}, {});
+
+const sortedTags = Object.entries(tagCounts).sort((a, b) => b[1] - a[1]).map(entry => entry[0]);
 ---
 
 <header>
@@ -8,8 +18,12 @@ import { SITE_TITLE } from '../consts';
 		<h2><a href="/">{SITE_TITLE}</a></h2>
 		<div class="internal-links">
 			<HeaderLink href="/">Home</HeaderLink>
-			<HeaderLink href="/blog">Blog</HeaderLink>
 			<HeaderLink href="/about">About</HeaderLink>
+		</div>
+		<div class="search-container">
+			<form action="/tags" method="get">
+				<input type="text" name="q" id="search-input" placeholder="Search tags..." />
+			</form>
 		</div>
 		<div class="social-links">
 			<a href="https://m.webtoo.ls/@astro" target="_blank">
@@ -40,6 +54,11 @@ import { SITE_TITLE } from '../consts';
 				>
 			</a>
 		</div>
+	</nav>
+	<nav class="tag-nav">
+		{sortedTags.map(tag => (
+			<a href={`/tags/${tag}`}>{tag}</a>
+		))}
 	</nav>
 </header>
 <style>
@@ -81,5 +100,28 @@ import { SITE_TITLE } from '../consts';
 		.social-links {
 			display: none;
 		}
+	}
+	.search-container {
+		margin: 0 1em;
+	}
+	#search-input {
+		padding: 0.5em;
+		border-radius: 4px;
+		border: 1px solid #ccc;
+	}
+	.tag-nav {
+		display: flex;
+		justify-content: center;
+		padding: 0.5em 1em;
+		background: #f9f9f9;
+	}
+	.tag-nav a {
+		margin: 0 0.5em;
+		padding: 0.25em 0.5em;
+		border-radius: 4px;
+		background: #eee;
+		color: #333;
+		text-decoration: none;
+		font-size: 0.9em;
 	}
 </style>

@@ -1,0 +1,102 @@
+---
+import { getCollection } from 'astro:content';
+import BaseHead from '../../components/BaseHead.astro';
+import Header from '../../components/Header.astro';
+import Footer from '../../components/Footer.astro';
+import { SITE_TITLE } from '../../consts';
+
+const posts = await getCollection('blog');
+
+// Calculate tag counts
+const tagCounts: { [key: string]: number } = posts.reduce((counts: { [key: string]: number }, post) => {
+	const tag = (post.data as any).category || 'general';
+	counts[tag] = (counts[tag] || 0) + 1;
+	return counts;
+}, {});
+const sortedTags = Object.entries(tagCounts).sort((a, b) => b[1] - a[1]);
+
+// Get all years
+const years = [...new Set(posts.map(post => new Date(post.data.pubDate).getFullYear()))].sort((a, b) => b - a);
+---
+
+<!doctype html>
+<html lang="en">
+	<head>
+		<BaseHead title={`Tags - ${SITE_TITLE}`} description="All post tags" />
+		<style>
+			.grid-container {
+				display: grid;
+				grid-template-columns: 3fr 1fr;
+				gap: 2em;
+			}
+			#tag-search-input {
+				width: 100%;
+				padding: 0.5em;
+				margin-bottom: 1em;
+				border-radius: 4px;
+				border: 1px solid #ccc;
+			}
+			#tag-list li {
+				margin-bottom: 0.5em;
+			}
+		</style>
+	</head>
+	<body style="display: flex; flex-direction: column; min-height: 100vh;">
+		<Header />
+		<main class="grid-container" style="flex-grow: 1;">
+			<section>
+				<h2>Tags</h2>
+				<input type="text" id="tag-search-input" placeholder="Search tags..." />
+				<ul id="tag-list">
+					{sortedTags.map(([tag, count]) => (
+						<li>
+							<a href={`/tags/${tag}`}>{tag}</a> ({count})
+						</li>
+					))}
+				</ul>
+			</section>
+			<aside>
+				<h2>Archive</h2>
+				<ul>
+					{years.map(year => (
+						<li>
+							<a href={`/${year}`}>{year}</a>
+						</li>
+					))}
+				</ul>
+			</aside>
+		</main>
+		<Footer />
+
+		<script>
+			const searchInput = document.getElementById('tag-search-input') as HTMLInputElement;
+			const tagList = document.getElementById('tag-list');
+			if (tagList) {
+				const tags = Array.from(tagList.getElementsByTagName('li'));
+
+				const urlParams = new URLSearchParams(window.location.search);
+				const query = urlParams.get('q');
+				if (query) {
+					searchInput.value = query;
+					filterTags(query);
+				}
+
+				searchInput.addEventListener('input', (e) => {
+					filterTags((e.target as HTMLInputElement).value);
+				});
+
+				function filterTags(query: string) {
+					const lowerCaseQuery = query.toLowerCase();
+					tags.forEach(tag => {
+						const tagName = tag.textContent?.toLowerCase();
+						if (tagName?.includes(lowerCaseQuery)) {
+							tag.style.display = 'list-item';
+						} else {
+							tag.style.display = 'none';
+						}
+					});
+				}
+			}
+		</script>
+	</body>
+</html>

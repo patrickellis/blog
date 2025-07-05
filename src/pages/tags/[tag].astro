@@ -1,14 +1,25 @@
 ---
 import { getCollection } from 'astro:content';
-import BaseHead from '../components/BaseHead.astro';
-import Header from '../components/Header.astro';
-import Footer from '../components/Footer.astro';
-import FormattedDate from '../components/FormattedDate.astro';
-import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
+import BaseHead from '../../components/BaseHead.astro';
+import Header from '../../components/Header.astro';
+import Footer from '../../components/Footer.astro';
+import FormattedDate from '../../components/FormattedDate.astro';
+import { SITE_TITLE } from '../../consts';
 
-const posts = (await getCollection('blog')).sort(
-	(a, b) => new Date(b.data.pubDate).valueOf() - new Date(a.data.pubDate).valueOf()
-);
+export async function getStaticPaths() {
+	const posts = await getCollection('blog');
+	const tags = [...new Set(posts.map((post) => (post.data as any).category).filter(Boolean))];
+	return tags.map((tag) => {
+		const filteredPosts = posts.filter((post) => (post.data as any).category === tag);
+		return {
+			params: { tag },
+			props: { posts: filteredPosts },
+		};
+	});
+}
+
+const { tag } = Astro.params;
+const { posts } = Astro.props;
 
 const recentPosts = posts.slice(0, 5);
 ---
@@ -16,7 +27,7 @@ const recentPosts = posts.slice(0, 5);
 <!doctype html>
 <html lang="en">
 	<head>
-		<BaseHead title={SITE_TITLE} description={SITE_DESCRIPTION} />
+		<BaseHead title={`${SITE_TITLE} - ${tag}`} description={`Posts tagged with ${tag}`} />
 		<style>
 			.grid-container {
 				display: grid;
@@ -42,7 +53,7 @@ const recentPosts = posts.slice(0, 5);
 		<Header />
 		<main class="grid-container" style="flex-grow: 1;">
 			<section>
-				<h2>Recent</h2>
+				<h2>Recent in "{tag}"</h2>
 				<ul>
 					{
 						recentPosts.map((post) => (

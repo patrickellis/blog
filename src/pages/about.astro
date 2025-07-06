@@ -1,54 +1,134 @@
 ---
 import Layout from '../layouts/BlogPost.astro';
-import { getCollection } from 'astro:content';
-
-const posts = await getCollection('blog');
-const tags = [...new Set(posts.map((post) => (post.data as any).category).filter(Boolean))];
 ---
 
 <Layout
 	title="About Patrick Ellis"
 	description="A little bit about me."
 	pubDate={new Date()}
+	isAboutPage={true}
 >
-	<section>
-		<h2>About me</h2>
-		<p>
-			I'm Patrick Ellis, a software engineer with a passion for building things for the web. I'm currently working at [Your Company] where I focus on [Your Role].
-		</p>
-		<p>
-			I'm interested in a wide range of topics, including but not limited to: web development, developer tools, performance, and design. I'm always looking for new things to learn and new problems to solve.
-		</p>
-		<p>
-			You can find me on <a href="https://github.com/your-github-username">GitHub</a>.
-		</p>
-	</section>
+	<div class="about-container">
+		<div class="about-sidebar">
+			<h1>Patrick Ellis</h1>
+			<p class="subheading">Software Engineer / Site Reliability Engineer</p>
+		</div>
+		<div class="about-main">
+			<section class="about-intro">
+				<p>
+					I'm Patrick Ellis, a software engineer with a passion for building things for the web. I'm currently working at Google where I focus on building and maintaining reliable, scalable systems.
+				</p>
+				<p>
+					I'm interested in a wide range of topics, including but not limited to: distributed systems, developer tools, performance, and cloud infrastructure. I'm always looking for new things to learn and new problems to solve.
+				</p>
+			</section>
 
-	<section>
-		<h2>About this site</h2>
-		<p>
-			This site is built with <a href="https://astro.build/">Astro</a>, a static site generator that allows me to write content in Markdown and build a fast, modern website. The styling is done with <a href="https://tailwindcss.com/">Tailwind CSS</a>.
-		</p>
-		<p>
-			The search functionality is powered by <a href="https://fusejs.io/">Fuse.js</a>, a lightweight fuzzy-search library.
-		</p>
-	</section>
+			<section class="resume">
+				<h2>Resume</h2>
+				<div class="job">
+					<div class="job-date">APR 2025 - PRESENT</div>
+					<div class="job-details">
+						<h3>Site Reliability Engineer, Google</h3>
+						<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
+						<div class="skills">
+							<span class="skill-tag">GCP</span>
+							<span class="skill-tag">Borg</span>
+							<span class="skill-tag">Go</span>
+							<span class="skill-tag">Observability</span>
+							<span class="skill-tag">SLO/SLI</span>
+						</div>
+					</div>
+				</div>
+				<div class="job">
+					<div class="job-date">MAR 2022 - MAR 2025</div>
+					<div class="job-details">
+						<h3>Site Reliability Engineer, Sky</h3>
+						<p>Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+						<div class="skills">
+							<span class="skill-tag">Kubernetes</span>
+							<span class="skill-tag">Docker</span>
+							<span class="skill-tag">Terraform</span>
+							<span class="skill-tag">Prometheus</span>
+							<span class="skill-tag">Python</span>
+						</div>
+					</div>
+				</div>
+				<div class="job">
+					<div class="job-date">SEP 2021 - MAR 2022</div>
+					<div class="job-details">
+						<h3>Software Engineer, Sky</h3>
+						<p>Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.</p>
+						<div class="skills">
+							<span class="skill-tag">Java</span>
+							<span class="skill-tag">Spring Boot</span>
+							<span class="skill-tag">Kafka</span>
+							<span class="skill-tag">AWS</span>
+							<span class="skill-tag">CI/CD</span>
+						</div>
+					</div>
+				</div>
+			</section>
 
-	<section>
-		<h2>Feeds</h2>
-		<p>
-			You can subscribe to all posts on this site using <a href="/rss.xml">this RSS feed</a>.
-		</p>
-		<p>
-			You can also subscribe to individual tags:
-		</p>
-		<ul>
-			{tags.map(tag => (
-				<li>
-					<a href={`/blog/${tag}/rss.xml`}>{tag}</a>
-				</li>
-			))}
-		</ul>
-	</section>
+			<section>
+				<h2>About this site</h2>
+				<p>
+					This site is built with <a href="https://astro.build/">Astro</a> and styled with custom CSS. The search functionality is powered by <a href="https://fusejs.io/">Fuse.js</a>.
+				</p>
+			</section>
+		</div>
+	</div>
 </Layout>
+
+<style>
+	.about-container {
+		display: flex;
+		gap: 2em;
+	}
+	.about-sidebar {
+		flex: 0 0 20%;
+	}
+	.about-sidebar h1 {
+		font-size: 1.8rem;
+		margin-bottom: 0.5em;
+	}
+	.about-sidebar .subheading {
+		font-size: 0.9rem;
+		color: #666;
+	}
+	.about-main {
+		flex: 1;
+	}
+	.resume .job {
+		display: flex;
+		gap: 1.5em;
+		margin-bottom: 2em;
+	}
+	.resume .job-date {
+		flex: 0 0 20%;
+		font-variant: small-caps;
+		font-weight: 600;
+		color: #444;
+	}
+	.resume .job-details {
+		flex: 1;
+	}
+	.resume .job-details h3 {
+		margin-top: 0;
+		margin-bottom: 0.5em;
+	}
+	.resume .skills {
+		margin-top: 1em;
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.5em;
+	}
+	.skill-tag {
+		background-color: #0b3d3c; /* Dark turquoise */
+		color: #66fcf1; /* Bright turquoise */
+		padding: 0.3em 0.8em;
+		border-radius: 4px;
+		font-size: 0.8em;
+		font-weight: 600;
+	}
+</style>
 

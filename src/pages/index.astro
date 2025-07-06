@@ -12,9 +12,12 @@ const posts = (await getCollection('blog')).sort(
 
 const cleanPosts = posts.map(post => ({
   id: post.id,
-  slug: post.slug,
-  data: post.data,
-  body: post.body
+  body: post.body,
+  data: {
+	  ...post.data,
+	  // Convert Date object to a string
+	  pubDate: post.data.pubDate.toISOString(),
+  }
 }));
 
 const recentPosts = posts.slice(0, 10);
@@ -24,7 +27,7 @@ const recentPosts = posts.slice(0, 10);
 <html lang="en">
 	<head>
 		<BaseHead title={SITE_TITLE} description={SITE_DESCRIPTION} />
-		<script id="posts-data" type="application/json">
+		<script id="posts-data" type="application/json" is:inline>
 			{JSON.stringify(cleanPosts)}
 		</script>
 	</head>
@@ -74,13 +77,37 @@ const recentPosts = posts.slice(0, 10);
 			</div>
 		</main>
 		<Footer />
-		<script src="https://cdn.jsdelivr.net/npm/fuse.js@7.0.0"></script>
-		<script define:vars={{ posts: cleanPosts }}>
+		<script define:vars={{ posts: cleanPosts }} is:inline>
+			// This script safely transfers data from the server to the client.
 			window.posts = posts;
 		</script>
 		<script>
+			// This is a module script, so Astro will handle the import correctly.
 			import Fuse from 'fuse.js';
 
+			// Define types for our data to ensure type safety.
+			interface Post {
+				id: string;
+				slug: string;
+				body: string;
+				data: {
+					title: string;
+					description: string;
+					pubDate: string;
+					category?: string;
+				}
+			}
+
+			
+
+			// Extend the global Window interface to include our posts array.
+			declare global {
+				interface Window {
+					posts: Post[];
+				}
+			}
+
+			// We can now safely access the data from the window object.
 			const posts = window.posts || [];
 
 			const fuse = new Fuse(posts, {
@@ -95,7 +122,7 @@ const recentPosts = posts.slice(0, 10);
 			const searchResultsList = document.getElementById('search-results-list');
 			const searchSubtitle = document.getElementById('search-subtitle');
 
-			function highlight(text, indices) {
+			function highlight(text: string, indices: [number, number][]): string {
 				let result = '';
 				let lastIndex = 0;
 				indices.forEach(([start, end]) => {
@@ -107,7 +134,7 @@ const recentPosts = posts.slice(0, 10);
 				return result;
 			}
 
-			function displayResults(query, results) {
+			function displayResults(query: string, results: any[]) {
 				if (!searchResultsList || !recentPostsList || !searchSubtitle) return;
 
 				searchResultsList.innerHTML = '';
@@ -119,12 +146,12 @@ const recentPosts = posts.slice(0, 10);
 						let title = post.data.title;
 						let description = post.data.description;
 
-						const titleMatch = result.matches.find(m => m.key === 'data.title');
+						const titleMatch = result.matches.find((m: any) => m.key === 'data.title');
 						if (titleMatch) {
 							title = highlight(title, titleMatch.indices);
 						}
 
-						const descriptionMatch = result.matches.find(m => m.key === 'data.description');
+						const descriptionMatch = result.matches.find((m: any) => m.key === 'data.description');
 						if (descriptionMatch) {
 							description = highlight(description, descriptionMatch.indices);
 						}

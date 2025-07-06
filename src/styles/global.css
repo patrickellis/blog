@@ -2,8 +2,8 @@
 
 :root {
   --font-sans: "Inter", sans-serif;
-  --bg-color: #fdfbf7; /* Cream background */
-  --text-color: #2d2d2d; /* Off-black for text */
+  --bg-color: rgb(242, 242, 255); /* Cream background */
+  --text-color: rgb(15, 23, 42); /* Off-black for text */
   --meta-color: #6c757d; /* Lighter grey for metadata */
 
   /* Tag colors */
@@ -37,7 +37,7 @@ h1,
 h2,
 h3,
 h4 {
-  font-weight: 700;
+  font-weight: 500;
   line-height: 1.2;
 }
 

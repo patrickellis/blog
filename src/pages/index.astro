@@ -31,49 +31,51 @@ const recentPosts = posts.slice(0, 10);
 			{JSON.stringify(cleanPosts)}
 		</script>
 	</head>
-	<body style="display: flex; flex-direction: column; min-height: 100vh;">
+	<body>
 		<Header />
 		<main>
-			<div id="default-layout" class="grid-container">
-				<section class="main-column">
-					<h2>Recent</h2>
-					<h3 id="search-subtitle" style="display: none; font-size: 0.9em; color: #666;"></h3>
-					<ul id="recent-posts-list" class="post-list">
-						{
-							recentPosts.map((post) => (
-								<li class="post-list-item">
-									<a href={`/blog/${post.id}`}>
-										<h3 class="title">{post.data.title}</h3>
-										<p class="description">{post.data.description}</p>
-										<FormattedDate date={post.data.pubDate} />
-										{(post.data as any).category && <div class="category-tag">{(post.data as any).category}</div>}
-									</a>
-								</li>
-							))
-						}
-					</ul>
-					<ul id="search-results-list" class="post-list" style="display: none;">
-						<!-- Search results will be injected here -->
-					</ul>
-				</section>
-				<aside class="sidebar-column">
-					<h2>Index</h2>
-					<ul id="post-index-list" class="index-list">
-						{
-							posts.map((post) => (
-								<li data-id={post.id}>
-									<a href={`/blog/${post.id}`}>
-										{post.data.title}
-									</a>
-									<br />
-									<small>
-										<FormattedDate date={post.data.pubDate} />
-									</small>
-								</li>
-							))
-						}
-					</ul>
-				</aside>
+			<div class="content-container">
+				<div id="default-layout" class="grid-container">
+					<section class="main-column">
+						<h2>Recent</h2>
+						<h3 id="search-subtitle" style="display: none; font-size: 0.9em; color: #666;"></h3>
+						<ul id="recent-posts-list" class="post-list">
+							{
+								recentPosts.map((post) => (
+									<li class="post-list-item">
+										<a href={`/blog/${post.id}`}>
+											<h3 class="title">{post.data.title}</h3>
+											<p class="description">{post.data.description}</p>
+											<FormattedDate date={post.data.pubDate} />
+											{(post.data as any).category && <div class="category-tag">{(post.data as any).category}</div>}
+										</a>
+									</li>
+								))
+							}
+						</ul>
+						<ul id="search-results-list" class="post-list" style="display: none;">
+							<!-- Search results will be injected here -->
+						</ul>
+					</section>
+					<aside class="sidebar-column">
+						<h2>Index</h2>
+						<ul id="post-index-list" class="index-list">
+							{
+								posts.map((post) => (
+									<li data-id={post.id}>
+										<a href={`/blog/${post.id}`}>
+											{post.data.title}
+										</a>
+										<br />
+										<small>
+											<FormattedDate date={post.data.pubDate} />
+										</small>
+									</li>
+								))
+							}
+						</ul>
+					</aside>
+				</div>
 			</div>
 		</main>
 		<Footer />

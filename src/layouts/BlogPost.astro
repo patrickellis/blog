@@ -15,14 +15,6 @@ const { title, description, pubDate, updatedDate, heroImage, category, isAboutPa
 	<head>
 		<BaseHead title={title} description={description} />
 		<style>
-			body {
-				display: flex;
-				flex-direction: column;
-				min-height: 100vh;
-			}
-			main {
-				flex-grow: 1;
-			}
 			.hero-image {
 				width: 100%;
 			}
@@ -61,35 +53,37 @@ const { title, description, pubDate, updatedDate, heroImage, category, isAboutPa
 	<body>
 		<Header />
 		<main>
-			<article>
-				<div class="hero-image">
-					{heroImage && <Image width={1020} height={510} src={heroImage} alt="" />}
-				</div>
-				<div class="prose">
-					{!isAboutPage && (
-						<div class="title">
-							<div class="date">
-								<FormattedDate date={pubDate} />
-								{
-									updatedDate && (
-										<div class="last-updated-on">
-											Last updated on <FormattedDate date={updatedDate} />
-										</div>
-									)
-								}
+			<div class="content-container">
+				<article>
+					<div class="hero-image">
+						{heroImage && <Image width={1020} height={510} src={heroImage} alt="" />}
+					</div>
+					<div class="prose">
+						{!isAboutPage && (
+							<div class="title">
+								<div class="date">
+									<FormattedDate date={pubDate} />
+									{
+										updatedDate && (
+											<div class="last-updated-on">
+												Last updated on <FormattedDate date={updatedDate} />
+											</div>
+										)
+									}
+								</div>
+								<h1>{title}</h1>
+								<hr />
 							</div>
-							<h1>{title}</h1>
-							<hr />
-						</div>
-					)}
-					{category && !isAboutPage && (
-						<div class="tag">
-							<a href={`/tags/${category}`} class="category-tag">{category}</a>
-						</div>
-					)}
-					<slot />
-				</div>
-			</article>
+						)}
+						{category && !isAboutPage && (
+							<div class="tag">
+								<a href={`/tags/${category}`} class="category-tag">{category}</a>
+							</div>
+						)}
+						<slot />
+					</div>
+				</article>
+			</div>
 		</main>
 		<Footer />
 	</body>

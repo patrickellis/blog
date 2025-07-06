@@ -10,7 +10,9 @@ export async function getStaticPaths() {
 	const posts = await getCollection('blog');
 	const years = [...new Set(posts.map((post) => new Date(post.data.pubDate).getFullYear()))];
 	return years.map((year) => {
-		const filteredPosts = posts.filter((post) => new Date(post.data.pubDate).getFullYear() === year);
+		const filteredPosts = posts
+			.filter((post) => new Date(post.data.pubDate).getFullYear() === year)
+			.sort((a, b) => new Date(b.data.pubDate).valueOf() - new Date(a.data.pubDate).valueOf());
 		return {
 			params: { year: String(year) },
 			props: { posts: filteredPosts },

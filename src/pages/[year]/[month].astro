@@ -15,10 +15,12 @@ export async function getStaticPaths() {
 
 	return yearMonths.map((yearMonth) => {
 		const [year, month] = yearMonth.split('/');
-		const filteredPosts = posts.filter((post) => {
-			const date = new Date(post.data.pubDate);
-			return date.getFullYear() === Number(year) && (date.getMonth() + 1) === Number(month);
-		});
+		const filteredPosts = posts
+			.filter((post) => {
+				const date = new Date(post.data.pubDate);
+				return date.getFullYear() === Number(year) && (date.getMonth() + 1) === Number(month);
+			})
+			.sort((a, b) => new Date(b.data.pubDate).valueOf() - new Date(a.data.pubDate).valueOf());
 		return {
 			params: { year, month },
 			props: { posts: filteredPosts },

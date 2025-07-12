@@ -1,6 +1,6 @@
 ---
-title: "The Unreasonable Effectiveness of AI Coding Assistants"
-description: "A look at the pricing and effectiveness of AI coding assistants."
+title: "AI Coding Assistants"
+description: ""
 pubDate: "2025-07-01"
 category: "ai"
 ---

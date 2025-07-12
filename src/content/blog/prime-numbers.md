@@ -1,6 +1,6 @@
 ---
 title: "The Enduring Mystery of Prime Numbers"
-description: "A look at the fascinating world of prime numbers."
+description: ""
 pubDate: "2025-06-20"
 category: "mathematics"
 ---

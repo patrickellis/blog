@@ -1,9 +1,21 @@
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap");
+@font-face {
+  font-family: 'Iosevka';
+  src: url('/fonts/iosevka-regular.ttc') format('truetype-collection');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Iosevka';
+  src: url('/fonts/iosevka-bold.ttc') format('truetype-collection');
+  font-weight: bold;
+  font-style: normal;
+}
 
 :root {
-  --font-sans: "Inter", sans-serif;
+  --font-sans: 'Iosevka', sans-serif;
   --bg-color: rgb(242, 242, 255); /* Cream background */
-  --text-color: rgb(15, 23, 42); /* Off-black for text */
+  --text-color: #333; /* Dark gray for text */
   --meta-color: #6c757d; /* Lighter grey for metadata */
 
   /* Tag colors */
@@ -33,6 +45,7 @@ body {
 main {
   flex-grow: 1;
   overflow-y: scroll; /* Make main content scrollable */
+  background-color: rgb(247, 247, 247);
 }
 
 .content-container {
@@ -45,7 +58,8 @@ h1,
 h2,
 h3,
 h4 {
-  font-weight: 500;
+  font-family: 'Iosevka', sans-serif;
+  font-weight: bold;
   line-height: 1.2;
 }
 
@@ -59,7 +73,7 @@ h2 {
 }
 
 a {
-  color: #2563eb; /* A modern, accessible blue */
+  color: #1919aa; /* A modern, accessible blue */
   text-decoration: none;
   transition: background-color 0.2s ease-in-out;
 }
@@ -78,10 +92,15 @@ ul {
   padding: 0;
 }
 
+pre,
+code {
+  font-family: 'Iosevka', monospace;
+}
+
 /* 3. BLOG POST LIST STYLES */
 .grid-container > section {
-  min-width: 500px;
-  max-width: 500px;
+  min-width: 600px;
+  max-width: 600px;
 }
 
 .post-list {
@@ -90,18 +109,13 @@ ul {
 
 .post-list-item {
   width: 100%;
-  margin-bottom: 1rem; /* Spacing between posts */
+  margin-bottom: 0.5rem; /* Greatly reduced spacing between posts */
   overflow-wrap: break-word;
 }
 
 .post-title {
   margin-top: 0.75rem;
-  margin-bottom: 0.1rem;
-}
-
-.post-description {
-  color: var(--meta-color);
-  margin-top: 0.5rem;
+  margin-bottom: 0.05rem;
 }
 
 .post-meta {
@@ -144,8 +158,8 @@ ul {
 
 .grid-container {
   display: grid;
-  grid-template-columns: 75% 1fr;
-  gap: 2em;
+  grid-template-columns: 65% 1fr;
+  gap: 1em;
 }
 
 .post-list-item a {
@@ -158,14 +172,16 @@ ul {
 }
 
 .post-list-item .title {
-  font-size: 1.5em;
-  margin-bottom: 0.1em;
-  color: blue;
-  text-decoration: underline;
+  font-size: 1.3em;
+  margin-bottom: 0.05em;
+  color: #1919aa;
+  text-decoration: none;
+  font-weight: 700;
+  transition: color 0.2s ease-in-out;
 }
 
-.post-list-item .description {
-  color: #666;
+.post-list-item:hover .title {
+  color: var(--text-color);
 }
 
 .index-list li {
@@ -176,4 +192,19 @@ mark {
   background-color: yellow;
   border-radius: 2px;
   padding: 0.1em 0;
+}
+
+@media (max-width: 768px) {
+  .grid-container {
+    grid-template-columns: 1fr;
+  }
+
+  .grid-container > section {
+    min-width: unset;
+    max-width: unset;
+  }
+
+  .content-container {
+    padding: 1rem;
+  }
 }

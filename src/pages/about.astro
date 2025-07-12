@@ -4,7 +4,7 @@ import Layout from '../layouts/BlogPost.astro';
 
 <Layout
 	title="About Patrick Ellis"
-	description="A little bit about me."
+	description="About Patrick Ellis"
 	pubDate={new Date()}
 	isAboutPage={true}
 >
@@ -108,6 +108,25 @@ import Layout from '../layouts/BlogPost.astro';
 		font-variant: small-caps;
 		font-weight: 600;
 		color: #444;
+		position: relative;
+		padding: 0.5em 0;
+	}
+	.resume .job-date::before {
+		content: '';
+		position: absolute;
+		left: 50%;
+		top: 0.4rem;
+		height: 95%;
+		width: 2px;
+		background-color: #ccc;
+		transform: translateX(-800%) translateY(23%);
+	}
+	.job:first-child .job-date::before {
+		height: calc(100%) !important; /* Adjust height to connect properly */
+		top: 6em !important; /* Move the line down */
+	}
+	.job:last-child .job-date::before {
+		height: 0.5em;
 	}
 	.resume .job-details {
 		flex: 1;

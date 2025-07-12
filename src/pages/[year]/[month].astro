@@ -9,7 +9,7 @@ import { SITE_TITLE } from '../../consts';
 export async function getStaticPaths() {
 	const posts = await getCollection('blog');
 	const yearMonths = [...new Set(posts.map((post) => {
-		const date = new Date(post.data.pubDate);
+		const date = post.data.pubDate;
 		return `${date.getFullYear()}/${String(date.getMonth() + 1).padStart(2, '0')}`;
 	}))];
 
@@ -17,10 +17,10 @@ export async function getStaticPaths() {
 		const [year, month] = yearMonth.split('/');
 		const filteredPosts = posts
 			.filter((post) => {
-				const date = new Date(post.data.pubDate);
+				const date = post.data.pubDate;
 				return date.getFullYear() === Number(year) && (date.getMonth() + 1) === Number(month);
 			})
-			.sort((a, b) => new Date(b.data.pubDate).valueOf() - new Date(a.data.pubDate).valueOf());
+			.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
 		return {
 			params: { year, month },
 			props: { posts: filteredPosts },
@@ -47,11 +47,10 @@ const { posts } = Astro.props;
 					{
 						posts.map((post) => (
 							<li class="post-list-item">
-								<a href={`/blog/${post.id}`}>
+								<a href={`/blog/${post.id}/`}>
 									<h3 class="title">{post.data.title}</h3>
-									<p class="description">{post.data.description}</p>
-									<FormattedDate date={post.data.pubDate} />
 								</a>
+								<FormattedDate date={post.data.pubDate} />
 							</li>
 						))
 					}
@@ -63,7 +62,7 @@ const { posts } = Astro.props;
 					{
 						posts.map((post) => (
 							<li>
-								<a href={`/blog/${post.id}`}>
+								<a href={`/blog/${post.id}/`}>
 									{post.data.title}
 								</a>
 								<br />

@@ -37,11 +37,10 @@ const { posts } = Astro.props;
 					{
 						posts.map((post) => (
 							<li class="post-list-item">
-								<a href={`/blog/${post.id}`}>
+								<a href={`/blog/${post.id}/`}>
 									<h3 class="title">{post.data.title}</h3>
-									<p class="description">{post.data.description}</p>
-									<FormattedDate date={post.data.pubDate} />
 								</a>
+								<FormattedDate date={post.data.pubDate} />
 							</li>
 						))
 					}
@@ -53,7 +52,7 @@ const { posts } = Astro.props;
 					{
 						posts.map((post) => (
 							<li>
-								<a href={`/blog/${post.id}`}>
+								<a href={`/blog/${post.id}/`}>
 									{post.data.title}
 								</a>
 								<br />

@@ -1,6 +1,6 @@
 ---
 title: "Using Playwright with Claude for Web Scraping"
-description: "A tutorial on how to use Playwright with Claude for web scraping."
+description: ""
 pubDate: "2025-06-28"
 category: "python"
 ---

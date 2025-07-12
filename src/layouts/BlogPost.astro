@@ -8,12 +8,12 @@ import { Image } from 'astro:assets';
 
 type Props = CollectionEntry<'blog'>['data'] & { isAboutPage?: boolean };
 
-const { title, description, pubDate, updatedDate, heroImage, category, isAboutPage } = Astro.props as any;
+const { title, pubDate, updatedDate, heroImage, category, isAboutPage } = Astro.props as any;
 ---
 
 <html lang="en">
 	<head>
-		<BaseHead title={title} description={description} />
+		<BaseHead title={title} description={Astro.props.description} />
 		<style>
 			.hero-image {
 				width: 100%;

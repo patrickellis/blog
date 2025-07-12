@@ -7,11 +7,12 @@ import FormattedDate from '../components/FormattedDate.astro';
 import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
 
 const posts = (await getCollection('blog')).sort(
-	(a, b) => new Date(b.data.pubDate).valueOf() - new Date(a.data.pubDate).valueOf()
+	(a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()
 );
 
 const cleanPosts = posts.map(post => ({
   id: post.id,
+  slug: post.id,
   body: post.body,
   data: {
 	  ...post.data,
@@ -43,12 +44,12 @@ const recentPosts = posts.slice(0, 10);
 							{
 								recentPosts.map((post) => (
 									<li class="post-list-item">
-										<a href={`/blog/${post.id}`}>
+										<a href={`/blog/${post.id}/`}>
 											<h3 class="title">{post.data.title}</h3>
-											<p class="description">{post.data.description}</p>
-											<FormattedDate date={post.data.pubDate} />
-											{(post.data as any).category && <div class="category-tag">{(post.data as any).category}</div>}
 										</a>
+										<FormattedDate date={post.data.pubDate} />
+										<div set:html={post.body}></div>
+										{(post.data as any).category && <div class="category-tag">{(post.data as any).category}</div>}
 									</li>
 								))
 							}
@@ -63,13 +64,13 @@ const recentPosts = posts.slice(0, 10);
 							{
 								posts.map((post) => (
 									<li data-id={post.id}>
-										<a href={`/blog/${post.id}`}>
-											{post.data.title}
-										</a>
-										<br />
 										<small>
 											<FormattedDate date={post.data.pubDate} />
 										</small>
+										|
+										<a href={`/blog/${post.id}/`}>
+											{post.data.title}
+										</a>
 									</li>
 								))
 							}
@@ -94,7 +95,6 @@ const recentPosts = posts.slice(0, 10);
 				body: string;
 				data: {
 					title: string;
-					description: string;
 					pubDate: string;
 					category?: string;
 				}
@@ -113,7 +113,7 @@ const recentPosts = posts.slice(0, 10);
 			const posts = window.posts || [];
 
 			const fuse = new Fuse(posts, {
-				keys: ['data.title', 'data.description', 'body'],
+				keys: ['data.title', 'body'],
 				includeScore: true,
 				includeMatches: true,
 				threshold: 0.4,
@@ -146,26 +146,34 @@ const recentPosts = posts.slice(0, 10);
 					results.forEach(result => {
 						const post = result.item;
 						let title = post.data.title;
-						let description = post.data.description;
+						let bodySnippet = '';
 
 						const titleMatch = result.matches.find((m: any) => m.key === 'data.title');
 						if (titleMatch) {
 							title = highlight(title, titleMatch.indices);
 						}
 
-						const descriptionMatch = result.matches.find((m: any) => m.key === 'data.description');
-						if (descriptionMatch) {
-							description = highlight(description, descriptionMatch.indices);
+						const bodyMatch = result.matches.find((m: any) => m.key === 'body');
+						if (bodyMatch) {
+							const matchText = bodyMatch.value;
+							const startIndex = Math.max(0, bodyMatch.indices[0][0] - 30);
+							const endIndex = Math.min(matchText.length, bodyMatch.indices[0][1] + 31);
+							const snippet = matchText.substring(startIndex, endIndex);
+							
+							// Adjust indices for the snippet
+							const adjustedIndices = bodyMatch.indices.map(([start, end]) => [start - startIndex, end - startIndex]);
+							bodySnippet = `...${highlight(snippet, adjustedIndices)}...`;
 						}
+
 
 						const listItem = document.createElement('li');
 						listItem.classList.add('post-list-item');
 						listItem.innerHTML = `
-							<a href="/blog/${post.slug}/">
-								<h3 class="title">${title}</h3>
-								<p class="description">${description}</p>
-								<small>${new Date(post.data.pubDate).toLocaleDateString()}</small>
-							</a>
+								<a href="/blog/${post.slug}/">
+									<h3 class="title">${title}</h3>
+									<div><small>${new Date(post.data.pubDate).toISOString().split('T')[0]}</small></div>
+									${bodySnippet ? `<p class="search-snippet">${bodySnippet}</p>` : ''}
+								</a>
 						`;
 						searchResultsList.appendChild(listItem);
 					});
@@ -205,4 +213,12 @@ const recentPosts = posts.slice(0, 10);
 				});
 			}
 		</script>
+		<style>
+			.search-snippet {
+				font-size: 0.9em;
+				color: #666;
+				margin-top: 0.5em;
+			}
+		</style>
 	</body>
+</html>

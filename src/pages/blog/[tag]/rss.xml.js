@@ -9,7 +9,6 @@ export async function GET(context) {
 
 	return rss({
 		title: `${SITE_TITLE} - ${tag}`,
-		description: `Posts tagged with ${tag}`,
 		site: context.site,
 		items: filteredPosts.map((post) => ({
 			...post.data,

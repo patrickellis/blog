@@ -1,73 +1,63 @@
 ---
 import HeaderLink from './HeaderLink.astro';
-import { getCollection } from 'astro:content';
-
-const posts = await getCollection('blog');
-const tagCounts: { [key: string]: number } = posts.reduce((counts: { [key: string]: number }, post) => {
-	const tag = (post.data as any).category || 'general';
-	counts[tag] = (counts[tag] || 0) + 1;
-	return counts;
-}, {});
-
-const sortedTags = Object.entries(tagCounts).sort((a, b) => b[1] - a[1]);
 ---
 
-<header style="position: sticky; top: 0; z-index: 100; background-color: white;">
-	<nav>
-		<div class="internal-links">
-			<HeaderLink href="/">Home</HeaderLink>
-			<HeaderLink href="/about">About</HeaderLink>
-		</div>
-		<div class="search-container">
-			<form action="/" method="get" onsubmit="return false;">
-				<input type="text" name="q" id="search-input" placeholder="Search posts..." />
-			</form>
-		</div>
-		
-	</nav>
-	<nav class="tag-nav">
-		{sortedTags.map(([tag, count]) => (
-			<a href={`/tags/${tag}`}>{tag} ({count})</a>
-		))}
-	</nav>
+<header style="position: sticky; top: 0; z-index: 100;">
+	<div class="nav-wrapper">
+		<nav>
+			<div class="internal-links">
+				<HeaderLink href="/">Home</HeaderLink>
+				<HeaderLink href="/about">About</HeaderLink>
+			</div>
+			<div class="search-container">
+				<form action="/" method="get" onsubmit="return false;">
+					<input type="text" name="q" id="search-input" placeholder="Search posts..." />
+				</form>
+			</div>
+		</nav>
+	</div>
 </header>
 <style>
 	header {
 		margin: 0;
-		background: white;
 		box-shadow: 0 2px 8px rgba(0,0,0,0.05);
 	}
-	nav {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		padding: 0 1em;
+	.nav-wrapper {
+		max-width: 960px;
+		margin: 0 auto;
+		padding: 0 2rem;
 	}
-	.tag-nav {
-		justify-content: center;
-		padding: 0.5em 1em;
+	nav {
+		display: grid;
+		grid-template-columns: 65% 1fr;
+		align-items: center;
+	}
+	.search-container {
+		margin: 0.1em 0;
 	}
 	nav a {
-		padding: 1em 0.5em;
-		color: rgb(100, 116, 139);
+		padding: 0.5em 0.5em;
+		color: #1919aa;
 		border-bottom: 4px solid transparent;
 		text-decoration: none;
+		font-size: 1.1em;
+	}
+	nav a:hover {
+		background-color: transparent;
+		color: var(--text-color);
 	}
 	nav a.active {
 		text-decoration: none;
 		border-bottom-color: var(--accent);
 		color: var(--text-color);
 	}
-	.search-container {
-		flex-grow: 1;
-		margin: 0 1.5em;
-	}
 	#search-input {
 		width: 100%;
-		padding: 0.6em 0.8em;
+		padding: 0.3em 0.8em;
 		border-radius: 8px;
 		border: 1px solid #ddd;
 		transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+		font-family: var(--font-sans);
 	}
 	#search-input:focus {
 		border-color: #aaa;
@@ -82,5 +72,25 @@ const sortedTags = Object.entries(tagCounts).sort((a, b) => b[1] - a[1]);
 		color: #333;
 		text-decoration: none;
 		font-size: 0.9em;
+	}
+
+	@media (max-width: 768px) {
+		nav {
+			grid-template-columns: 1fr;
+			gap: 0.5em;
+		}
+
+		.internal-links {
+			text-align: center;
+		}
+
+		.search-container {
+			margin: 0 auto;
+			width: 80%;
+		}
+
+		.nav-wrapper {
+			padding: 0 1rem;
+		}
 	}
 </style>

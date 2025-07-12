@@ -1,6 +1,6 @@
 ---
 title: "The Art of Data Analysis"
-description: "A discussion on the principles of effective data analysis."
+description: ""
 pubDate: "2025-06-22"
 category: "data"
 ---

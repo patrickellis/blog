@@ -1,4 +1,11 @@
 @font-face {
+  font-family: 'FOT-Matisse Pro';
+  src: url('/fonts/FOT-Matisse-Pro-EB.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
   font-family: 'Iosevka';
   src: url('/fonts/iosevka-regular.ttc') format('truetype-collection');
   font-weight: normal;
@@ -98,11 +105,6 @@ code {
 }
 
 /* 3. BLOG POST LIST STYLES */
-.grid-container > section {
-  min-width: 600px;
-  max-width: 600px;
-}
-
 .post-list {
   width: 100%;
 }
@@ -194,7 +196,7 @@ mark {
   padding: 0.1em 0;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 992px) {
   .grid-container {
     grid-template-columns: 1fr;
   }

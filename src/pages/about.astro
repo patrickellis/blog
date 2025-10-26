@@ -10,8 +10,11 @@ import Layout from '../layouts/BlogPost.astro';
 >
 	<div class="about-container">
 		<div class="about-sidebar">
-			<h1 style="font-family: 'FOT-Matisse Pro', sans-serif; text-transform: uppercase; color: rgb(28,76,220);">PATRICK ELLIS</h1>
-			<p class="subheading">Software Engineer <br/> Site Reliability Engineer</p>
+			<h1 style="text-transform: uppercase; color: rgb(28,76,220); font-size: 1.5rem; text-align: center;">PATRICK ELLIS</h1>
+			<p class="subheading details" style="text-align: center;">
+				<span>Software Engineer</span>
+				<span>Site Reliability Engineer</span>
+			</p>
 		</div>
 		<div class="about-main">
 			<section class="about-intro">
@@ -98,7 +101,7 @@ import Layout from '../layouts/BlogPost.astro';
 					<li>LinkedIn: <a href="https://linkedin.com/patrickellis" target="_blank">linkedin.com/patrickellis</a></li>
 					<li>GitHub: <a href="https://github.com/patrick-ellis" target="_blank">github.com/patrick-ellis</a></li>
 				</ul>
-			</section>
+.			</section>
 		</div>
 	</div>
 </Layout>
@@ -190,4 +193,9 @@ import Layout from '../layouts/BlogPost.astro';
 		}
 	}
 </style>
-
+<style>
+	.details span:not(:last-child)::after {
+		content: " | ";
+		margin: 0 0.5em;
+	}
+</style>

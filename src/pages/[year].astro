@@ -32,40 +32,43 @@ const { posts } = Astro.props;
 	<body style="display: flex; flex-direction: column; min-height: 100vh;">
 		<Header />
 		<main>
-			<div class="grid-container">
-			<section>
-				<h2>Posts from {year}</h2>
-				<ul>
-					{
-						posts.map((post) => (
-							<li class="post-list-item">
-								<a href={`/blog/${post.id}/`}>
-									<h3 class="title">{post.data.title}</h3>
-								</a>
-								<FormattedDate date={post.data.pubDate} />
-							</li>
-						))
-					}
-				</ul>
-			</section>
-			<aside>
-				<h2>Index</h2>
-				<ul class="index-list">
-					{
-						posts.map((post) => (
-							<li>
-								<a href={`/blog/${post.id}/`}>
-									{post.data.title}
-								</a>
-								<br />
-								<small>
-									<FormattedDate date={post.data.pubDate} />
-								</small>
-							</li>
-						))
-					}
-				</ul>
-			</aside>
+			<div class="content-container">
+				<div class="grid-container">
+					<section>
+						<h2>Posts from {year}</h2>
+						<ul>
+							{
+								posts.map((post) => (
+									<li class="post-list-item">
+										<a href={`/blog/${post.id}/`}>
+											<h3 class="title">{post.data.title}</h3>
+										</a>
+										<FormattedDate date={post.data.pubDate} />
+									</li>
+								))
+							}
+						</ul>
+					</section>
+					<aside>
+						<h2>Index</h2>
+						<ul class="index-list">
+							{
+								posts.map((post) => (
+									<li>
+										<small>
+											<FormattedDate date={post.data.pubDate} />
+										</small>
+										|
+										<a href={`/blog/${post.id}/`}>
+											{post.data.title}
+										</a>
+									</li>
+								))
+							}
+						</ul>
+					</aside>
+				</div>
+			</div>
 		</main>
 		<Footer />
 	</body>

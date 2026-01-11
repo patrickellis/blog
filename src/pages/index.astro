@@ -123,7 +123,7 @@ const recentPosts = posts.slice(0, 10);
 				includeScore: true,
 				includeMatches: true,
 				threshold: 0.3,
-				minMatchCharLength: 2,
+				minMatchCharLength: 1,
 				findAllMatches: true,
 				distance: 100,
 			});
@@ -233,6 +233,11 @@ const recentPosts = posts.slice(0, 10);
 				font-size: 0.9em;
 				color: #666;
 				margin-top: 0.5em;
+			}
+			.main-column h2:first-child,
+			.sidebar-column h2:first-child {
+				margin-top: 0;
+				font-size: 1.8rem;
 			}
 		</style>
 	</body>

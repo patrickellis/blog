@@ -10,8 +10,8 @@ import Layout from '../layouts/BlogPost.astro';
 >
 	<div class="about-container">
 		<div class="about-sidebar">
-			<h1 style="text-transform: uppercase; color: rgb(28,76,220); font-size: 1.5rem; text-align: center;">PATRICK ELLIS</h1>
-			<p class="subheading details" style="text-align: center;">
+			<h1 style="text-transform: uppercase; color: rgb(28,76,220); font-size: 1.5rem;">PATRICK ELLIS</h1>
+			<p class="subheading details">
 				<span>Software Engineer</span>
 				<span>Site Reliability Engineer</span>
 			</p>
@@ -29,7 +29,14 @@ import Layout from '../layouts/BlogPost.astro';
 			<section class="resume">
 				<h2>Resume</h2>
 				<div class="job">
-					<div class="job-date">APR 2025 - PRESENT</div>
+					<div class="job-date">NOV 2025 - PRESENT</div>
+					<div class="job-details">
+						<h3>Semi-retired</h3>
+						<p>I am currently semi-retired. I will continue to work on projects and contribute to open source, journaling as I go.</p>
+					</div>
+				</div>
+				<div class="job">
+					<div class="job-date">APR 2025 - NOV 2025</div>
 					<div class="job-details">
 						<h3>Site Reliability Engineer, Google</h3>
 						<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
@@ -109,7 +116,7 @@ import Layout from '../layouts/BlogPost.astro';
 <style>
 	.about-container {
 		display: flex;
-		gap: 2em;
+		gap: 1em;
 	}
 	.about-sidebar {
 		flex: 0 0 20%;
@@ -117,6 +124,7 @@ import Layout from '../layouts/BlogPost.astro';
 	.about-sidebar h1 {
 		font-size: 1.8rem;
 		margin-bottom: 0.5em;
+		margin-top: 0;
 	}
 	.about-sidebar .subheading {
 		font-size: 0.9rem;
@@ -191,6 +199,9 @@ import Layout from '../layouts/BlogPost.astro';
 		.about-container {
 			flex-direction: column;
 		}
+	}
+	.about-intro p:first-child {
+		margin-top: 0;
 	}
 </style>
 <style>

@@ -212,3 +212,9 @@ mark {
     padding: 1rem;
   }
 }
+
+.main-column h2:first-child,
+.sidebar-column h2:first-child {
+  margin-top: 0;
+  font-size: 1.8rem;
+}

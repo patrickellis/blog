@@ -34,7 +34,7 @@ const { posts } = Astro.props;
 		<main>
 			<div class="content-container">
 				<div class="grid-container">
-					<section>
+					<section class="main-column">
 						<h2>Posts from {year}</h2>
 						<ul>
 							{
@@ -49,7 +49,7 @@ const { posts } = Astro.props;
 							}
 						</ul>
 					</section>
-					<aside>
+					<aside class="sidebar-column">
 						<h2>Index</h2>
 						<ul class="index-list">
 							{

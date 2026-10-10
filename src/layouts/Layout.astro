@@ -1,0 +1,406 @@
+---
+import '../styles/global.css';
+import {
+	SITE_TITLE,
+	SITE_DESCRIPTION,
+	PRODUCT_NAME,
+	CONTACT_EMAIL,
+	DEVELOPER_NAME,
+	RIOT_DISCLAIMER,
+} from '../consts';
+
+interface Props {
+	title?: string;
+	description?: string;
+}
+
+const { title = SITE_TITLE, description = SITE_DESCRIPTION } = Astro.props;
+const canonicalURL = new URL(Astro.url.pathname, Astro.site);
+const ogImage = new URL('/og.jpg', Astro.site);
+const isHome = Astro.url.pathname === '/';
+const anchor = (id: string) => (isHome ? `#${id}` : `/#${id}`);
+const year = new Date().getFullYear();
+
+const jsonLd = {
+	'@context': 'https://schema.org',
+	'@type': 'WebApplication',
+	name: PRODUCT_NAME,
+	url: Astro.site?.toString(),
+	applicationCategory: 'GameApplication',
+	operatingSystem: 'Web',
+	description: SITE_DESCRIPTION,
+	offers: { '@type': 'Offer', price: '0', priceCurrency: 'GBP' },
+	author: { '@type': 'Person', name: DEVELOPER_NAME },
+};
+---
+
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width,initial-scale=1" />
+		<meta name="theme-color" content="#06080f" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<link rel="sitemap" href="/sitemap-index.xml" />
+		<link rel="canonical" href={canonicalURL} />
+		<link rel="preconnect" href="https://fonts.googleapis.com" />
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+		<meta name="generator" content={Astro.generator} />
+
+		<title>{title}</title>
+		<meta name="title" content={title} />
+		<meta name="description" content={description} />
+
+		<meta property="og:type" content="website" />
+		<meta property="og:site_name" content={PRODUCT_NAME} />
+		<meta property="og:url" content={canonicalURL} />
+		<meta property="og:title" content={title} />
+		<meta property="og:description" content={description} />
+		<meta property="og:image" content={ogImage} />
+
+		<meta name="twitter:card" content="summary_large_image" />
+		<meta name="twitter:title" content={title} />
+		<meta name="twitter:description" content={description} />
+		<meta name="twitter:image" content={ogImage} />
+
+		<script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+	</head>
+	<body>
+		<a class="skip-link" href="#main">Skip to content</a>
+
+		<header class="site-header" id="site-header">
+			<div class="container nav">
+				<a href="/" class="brand" id="nav-home" aria-label={`${PRODUCT_NAME} home`}>
+					<img src="/favicon.svg" alt="" width="32" height="32" />
+					<span>TFT Personal <span class="gradient-text">Tutor</span></span>
+				</a>
+				<nav aria-label="Primary">
+					<ul class="nav-links" id="nav-links">
+						<li><a href={anchor('how-it-works')} id="nav-how">How it works</a></li>
+						<li><a href={anchor('analysis')} id="nav-analysis">What it analyses</a></li>
+						<li><a href={anchor('sample-report')} id="nav-sample">Sample report</a></li>
+						<li><a href={anchor('principles')} id="nav-principles">Fair play</a></li>
+						<li><a href={anchor('data')} id="nav-data">Your data</a></li>
+						<li><a href={anchor('pricing')} id="nav-pricing">Pricing</a></li>
+					</ul>
+				</nav>
+				<a href={anchor('waitlist')} class="btn btn-primary nav-cta" id="nav-waitlist">Join the waitlist</a>
+				<button class="nav-toggle" id="nav-toggle" aria-label="Open menu" aria-expanded="false" aria-controls="nav-links">
+					<span></span><span></span>
+				</button>
+			</div>
+		</header>
+
+		<main id="main">
+			<slot />
+		</main>
+
+		<footer class="site-footer">
+			<div class="container">
+				<div class="footer-top">
+					<div class="footer-brand">
+						<a href="/" class="brand" id="footer-home">
+							<img src="/favicon.svg" alt="" width="28" height="28" />
+							<span>TFT Personal <span class="gradient-text">Tutor</span></span>
+						</a>
+						<p>Post-game coaching built from your own Teamfight Tactics match history. Post-game only: nothing runs while you're in a match.</p>
+					</div>
+					<div class="footer-cols">
+						<div>
+							<h4>Product</h4>
+							<ul>
+								<li><a href={anchor('how-it-works')}>How it works</a></li>
+								<li><a href={anchor('sample-report')}>Sample report</a></li>
+								<li><a href={anchor('pricing')}>Pricing</a></li>
+								<li><a href={anchor('faq')}>FAQ</a></li>
+							</ul>
+						</div>
+						<div>
+							<h4>Trust</h4>
+							<ul>
+								<li><a href="/privacy" id="footer-privacy">Privacy policy</a></li>
+								<li><a href="/terms" id="footer-terms">Terms of service</a></li>
+								<li><a href={anchor('principles')}>Fair-play commitments</a></li>
+								<li><a href={`mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent('TFT Personal Tutor - data deletion request')}`}>Delete my data</a></li>
+							</ul>
+						</div>
+						<div>
+							<h4>Contact</h4>
+							<ul>
+								<li><a href={`mailto:${CONTACT_EMAIL}`} id="footer-email">{CONTACT_EMAIL}</a></li>
+								<li><a href="/resume-research.pdf" target="_blank" rel="noopener" id="footer-resume">Built by {DEVELOPER_NAME}</a></li>
+							</ul>
+						</div>
+					</div>
+				</div>
+				<p class="disclaimer">{RIOT_DISCLAIMER}</p>
+				<p class="copyright">© {year} {DEVELOPER_NAME}. All rights reserved.</p>
+			</div>
+		</footer>
+
+		<script>
+			// Header: add a solid background once the page scrolls.
+			const header = document.getElementById('site-header');
+			const onScroll = () => header?.classList.toggle('is-scrolled', window.scrollY > 12);
+			onScroll();
+			window.addEventListener('scroll', onScroll, { passive: true });
+
+			// Mobile menu toggle.
+			const toggle = document.getElementById('nav-toggle');
+			toggle?.addEventListener('click', () => {
+				const open = header?.classList.toggle('menu-open') ?? false;
+				toggle.setAttribute('aria-expanded', String(open));
+				toggle.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+			});
+			document.querySelectorAll('#nav-links a').forEach((link) =>
+				link.addEventListener('click', () => {
+					header?.classList.remove('menu-open');
+					toggle?.setAttribute('aria-expanded', 'false');
+				}),
+			);
+
+			// Scroll-reveal animations.
+			const io = new IntersectionObserver(
+				(entries) => {
+					entries.forEach((entry) => {
+						if (entry.isIntersecting) {
+							entry.target.classList.add('is-visible');
+							io.unobserve(entry.target);
+						}
+					});
+				},
+				{ threshold: 0.12, rootMargin: '0px 0px -40px 0px' },
+			);
+			document.querySelectorAll('.reveal').forEach((el) => io.observe(el));
+
+			// Pointer-tracking sheen on cards.
+			document.querySelectorAll<HTMLElement>('.card').forEach((card) => {
+				card.addEventListener('pointermove', (e) => {
+					const r = card.getBoundingClientRect();
+					card.style.setProperty('--mx', `${e.clientX - r.left}px`);
+					card.style.setProperty('--my', `${e.clientY - r.top}px`);
+				});
+			});
+		</script>
+
+		<style>
+			.skip-link {
+				position: absolute;
+				left: 1rem;
+				top: -3rem;
+				z-index: 100;
+				padding: 0.6rem 1rem;
+				border-radius: 8px;
+				background: var(--gold-400);
+				color: var(--ink-950);
+				font-weight: 600;
+			}
+			.skip-link:focus {
+				top: 1rem;
+			}
+
+			.site-header {
+				position: sticky;
+				top: 0;
+				z-index: 50;
+				border-bottom: 1px solid transparent;
+				transition: background 0.3s var(--ease), border-color 0.3s var(--ease), backdrop-filter 0.3s var(--ease);
+			}
+			.site-header.is-scrolled,
+			.site-header.menu-open {
+				background: hsl(228 45% 5% / 0.78);
+				backdrop-filter: blur(16px) saturate(140%);
+				-webkit-backdrop-filter: blur(16px) saturate(140%);
+				border-bottom-color: var(--border);
+			}
+			.nav {
+				display: flex;
+				align-items: center;
+				gap: 2rem;
+				height: 72px;
+			}
+			.brand {
+				display: inline-flex;
+				align-items: center;
+				gap: 0.65rem;
+				font-family: var(--font-display);
+				font-weight: 700;
+				font-size: 1.1rem;
+				color: #fff;
+				letter-spacing: -0.01em;
+			}
+			.brand:hover {
+				color: #fff;
+			}
+			nav {
+				margin-left: auto;
+			}
+			.nav-links {
+				display: flex;
+				gap: 1.6rem;
+				list-style: none;
+				margin: 0;
+				padding: 0;
+			}
+			.nav-links a {
+				color: var(--text-muted);
+				font-size: 0.93rem;
+				font-weight: 500;
+				position: relative;
+			}
+			.nav-links a::after {
+				content: '';
+				position: absolute;
+				left: 0;
+				right: 0;
+				bottom: -6px;
+				height: 1px;
+				background: var(--gold-400);
+				transform: scaleX(0);
+				transition: transform 0.3s var(--ease);
+			}
+			.nav-links a:hover {
+				color: #fff;
+			}
+			.nav-links a:hover::after {
+				transform: scaleX(1);
+			}
+			.nav-cta {
+				padding: 0.65rem 1.1rem;
+				font-size: 0.92rem;
+			}
+			.nav-toggle {
+				display: none;
+				margin-left: auto;
+				width: 42px;
+				height: 42px;
+				border-radius: 10px;
+				border: 1px solid var(--border);
+				background: transparent;
+				cursor: pointer;
+				position: relative;
+			}
+			.nav-toggle span {
+				position: absolute;
+				left: 11px;
+				right: 11px;
+				height: 2px;
+				border-radius: 2px;
+				background: #fff;
+				transition: transform 0.3s var(--ease), top 0.3s var(--ease);
+			}
+			.nav-toggle span:first-child {
+				top: 15px;
+			}
+			.nav-toggle span:last-child {
+				top: 24px;
+			}
+			.menu-open .nav-toggle span:first-child {
+				top: 20px;
+				transform: rotate(45deg);
+			}
+			.menu-open .nav-toggle span:last-child {
+				top: 20px;
+				transform: rotate(-45deg);
+			}
+
+			@media (max-width: 1080px) {
+				.nav-cta {
+					display: none;
+				}
+			}
+			@media (max-width: 900px) {
+				.nav-toggle {
+					display: block;
+				}
+				nav {
+					position: absolute;
+					top: 72px;
+					left: 0;
+					right: 0;
+					margin: 0;
+					background: hsl(228 45% 5% / 0.96);
+					border-bottom: 1px solid var(--border);
+					max-height: 0;
+					overflow: hidden;
+					transition: max-height 0.4s var(--ease);
+				}
+				.menu-open nav {
+					max-height: 420px;
+				}
+				.nav-links {
+					flex-direction: column;
+					gap: 0;
+					padding: 0.5rem 1.5rem 1.25rem;
+				}
+				.nav-links a {
+					display: block;
+					padding: 0.75rem 0;
+					font-size: 1.05rem;
+				}
+				.nav-links a::after {
+					display: none;
+				}
+			}
+
+			.site-footer {
+				border-top: 1px solid var(--border);
+				background: hsl(228 45% 4% / 0.7);
+				padding: 4rem 0 2.5rem;
+				font-size: 0.93rem;
+			}
+			.footer-top {
+				display: flex;
+				justify-content: space-between;
+				gap: 3rem;
+				flex-wrap: wrap;
+				margin-bottom: 3rem;
+			}
+			.footer-brand {
+				max-width: 340px;
+			}
+			.footer-brand p {
+				color: var(--text-faint);
+				margin-top: 1rem;
+			}
+			.footer-cols {
+				display: flex;
+				gap: 4rem;
+				flex-wrap: wrap;
+			}
+			.footer-cols h4 {
+				font-size: 0.8rem;
+				font-family: var(--font-mono);
+				text-transform: uppercase;
+				letter-spacing: 0.14em;
+				color: var(--text-faint);
+				margin-bottom: 1rem;
+			}
+			.footer-cols ul {
+				list-style: none;
+				margin: 0;
+				padding: 0;
+				display: grid;
+				gap: 0.55rem;
+			}
+			.footer-cols a {
+				color: var(--text-muted);
+			}
+			.footer-cols a:hover {
+				color: #fff;
+			}
+			.disclaimer {
+				font-size: 0.8rem;
+				color: var(--text-faint);
+				border-top: 1px solid var(--border);
+				padding-top: 1.75rem;
+				max-width: 900px;
+			}
+			.copyright {
+				font-size: 0.8rem;
+				color: var(--ink-600);
+				margin: 0;
+			}
+		</style>
+	</body>
+</html>

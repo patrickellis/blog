@@ -1,0 +1,220 @@
+@import url('https://fonts.googleapis.com/css2?family=Kosugi&display=swap');
+
+@font-face {
+  font-family: 'FOT-Matisse Pro';
+  src: url('/fonts/FOT-Matisse-Pro-EB.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Iosevka';
+  src: url('/fonts/iosevka-regular.ttc') format('truetype-collection');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Iosevka';
+  src: url('/fonts/iosevka-bold.ttc') format('truetype-collection');
+  font-weight: bold;
+  font-style: normal;
+}
+
+:root {
+  --font-sans: 'Iosevka', sans-serif;
+  --bg-color: rgb(242, 242, 255); /* Cream background */
+  --text-color: #333; /* Dark gray for text */
+  --meta-color: #6c757d; /* Lighter grey for metadata */
+
+  /* Tag colors */
+  --tag-green-bg: #d1fae5;
+  --tag-green-text: #065f46;
+  --tag-blue-bg: #dbeafe;
+  --tag-blue-text: #1e40af;
+  --tag-pink-bg: #fce7f3;
+  --tag-pink-text: #9d2463;
+  --tag-default-bg: #e9ecef;
+  --tag-default-text: #495057;
+}
+body {
+  font-family: var(--font-sans);
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  margin: 0;
+  padding: 0;
+  font-size: 11px;
+  line-height: 1.6;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden; /* Prevent body from scrolling */
+}
+
+main {
+  flex-grow: 1;
+  overflow-y: scroll; /* Make main content scrollable */
+  background-color: rgb(247, 247, 247);
+}
+
+.content-container {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: 'Iosevka', sans-serif;
+  font-weight: bold;
+  line-height: 1.2;
+}
+
+h1 {
+  font-size: 2.5rem; /* ~40px */
+  margin-bottom: 1rem; /* ~48px */
+}
+
+h2 {
+  font-size: 1.875rem; /* ~30px */
+}
+
+a {
+  color: #1919aa; /* A modern, accessible blue */
+  text-decoration: none;
+  transition: background-color 0.2s ease-in-out;
+}
+
+a:hover {
+  background-color: rgba(37, 99, 235, 0.1);
+  border-radius: 2px;
+}
+
+a:hover h2 {
+  text-decoration: underline;
+}
+
+ul {
+  list-style: none;
+  padding: 0;
+}
+
+pre,
+code {
+  font-family: 'Kosugi', monospace;
+}
+
+/* 3. BLOG POST LIST STYLES */
+.post-list {
+  width: 100%;
+}
+
+.post-list-item {
+  width: 100%;
+  margin-bottom: 0.5rem; /* Greatly reduced spacing between posts */
+  overflow-wrap: break-word;
+}
+
+.post-title {
+  margin-top: 0.75rem;
+  margin-bottom: 0.05rem;
+}
+
+.post-meta {
+  font-size: 0.875rem; /* 14px */
+  color: var(--meta-color);
+  margin-top: 0.75rem;
+}
+
+/* 4. CATEGORY TAG STYLES */
+.category-tag {
+  display: inline-block;
+  padding: 0.25rem 0.625rem; /* Equivalent to px-2.5 py-1 */
+  font-size: 0.75rem; /* 12px */
+  font-weight: 700;
+  border-radius: 6px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.category-tag.lifestyle {
+  background-color: var(--tag-green-bg);
+  color: var(--tag-green-text);
+}
+
+.category-tag.technology {
+  background-color: var(--tag-blue-bg);
+  color: var(--tag-blue-text);
+}
+
+.category-tag.design {
+  background-color: var(--tag-pink-bg);
+  color: var(--tag-pink-text);
+}
+
+/* Default tag style for any other category */
+.category-tag.default {
+  background-color: var(--tag-default-bg);
+  color: var(--tag-default-text);
+}
+
+.grid-container {
+  display: grid;
+  grid-template-columns: 65% 1fr;
+  gap: 1em;
+}
+
+.post-list-item a {
+  text-decoration: none;
+  color: inherit;
+}
+
+.post-list-item:hover {
+  cursor: pointer;
+}
+
+.post-list-item .title {
+  font-size: 1.3em;
+  margin-bottom: 0.05em;
+  color: #1919aa;
+  text-decoration: none;
+  font-weight: 700;
+  transition: color 0.2s ease-in-out;
+}
+
+.post-list-item:hover .title {
+  color: var(--text-color);
+}
+
+.index-list li {
+  margin-bottom: 0.1em;
+}
+
+mark {
+  background-color: yellow;
+  border-radius: 2px;
+  padding: 0.1em 0;
+}
+
+@media (max-width: 992px) {
+  .grid-container {
+    grid-template-columns: 1fr;
+  }
+
+  .grid-container > section {
+    min-width: unset;
+    max-width: unset;
+  }
+
+  .content-container {
+    padding: 1rem;
+  }
+}
+
+.main-column h2:first-child,
+.sidebar-column h2:first-child {
+  margin-top: 0;
+  font-size: 1.8rem;
+}

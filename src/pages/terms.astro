@@ -1,0 +1,74 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { CONTACT_EMAIL, DEVELOPER_NAME, LEGAL_UPDATED, PRODUCT_NAME, RIOT_DISCLAIMER } from '../consts';
+
+const updated = new Date(LEGAL_UPDATED).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+---
+
+<Layout title={`Terms of service | ${PRODUCT_NAME}`} description={`The terms for using ${PRODUCT_NAME}, a post-game coaching tool for Teamfight Tactics.`}>
+	<section class="section">
+		<div class="container">
+			<article class="prose">
+				<span class="eyebrow">Legal</span>
+				<h1>Terms of service</h1>
+				<p class="meta">Last updated {updated}</p>
+
+				<p>
+					These terms cover your use of {PRODUCT_NAME} (“the service”), built and run by {DEVELOPER_NAME}. By using the service you agree to them.
+				</p>
+
+				<h2>1. What the service is</h2>
+				<p>
+					{PRODUCT_NAME} is a post-game coaching tool for Teamfight Tactics. It analyses your own recent ranked match history and produces a written report on your strengths, recurring weaknesses and focus points for future games.
+				</p>
+
+				<h2>2. What the service is not</h2>
+				<p>To stay fair to every player and within Riot Games’ policies, the service:</p>
+				<ul>
+					<li>has no overlay, doesn’t run during matches, and gives no live or game-state advice;</li>
+					<li>doesn’t track, scout or predict opponents, or show lobby or opponent statistics;</li>
+					<li>doesn’t show win rates for Legends or Legend-based augments;</li>
+					<li>doesn’t calculate MMR or any alternative or unofficial ranking;</li>
+					<li>doesn’t automate any part of gameplay.</li>
+				</ul>
+				<p>
+					Reports describe patterns and suggest options. They don’t tell you what you must play, and they aren’t a guarantee of results.
+				</p>
+
+				<h2>3. Your account</h2>
+				<p>
+					You sign in with Riot Sign-On and can only view reports for the Riot account you sign in with. Don’t try to access another player’s data, get around rate limits, or scrape, reverse-engineer or overload the service.
+				</p>
+
+				<h2>4. Pricing</h2>
+				<p>
+					The core analysis is free. We may offer an optional paid subscription for longer history and deeper reports. Any subscription will be clearly priced before you buy it, can be cancelled at any time, and will never give an in-game advantage.
+				</p>
+
+				<h2>5. Availability</h2>
+				<p>
+					The service relies on Riot Games’ APIs and is provided “as is”. We’ll try to keep it running smoothly, but we can’t guarantee it will always be available, error-free or able to fetch every match. Features may change to stay in line with Riot’s policies.
+				</p>
+
+				<h2>6. Privacy</h2>
+				<p>How we handle your data is explained in the <a href="/privacy">privacy policy</a>.</p>
+
+				<h2>7. Liability</h2>
+				<p>
+					As far as the law allows, we aren’t liable for indirect or consequential losses arising from use of the service, including changes in your in-game rank. Nothing in these terms limits rights you have under consumer protection law.
+				</p>
+
+				<h2>8. Changes and termination</h2>
+				<p>
+					We may update these terms. If we make significant changes, we’ll update the date above. We may suspend access for anyone who breaks these terms. You can stop using the service and ask for your data to be deleted at any time.
+				</p>
+
+				<h2>9. Riot Games</h2>
+				<p>{RIOT_DISCLAIMER}</p>
+
+				<h2>10. Contact</h2>
+				<p>Questions about these terms: <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>.</p>
+			</article>
+		</div>
+	</section>
+</Layout>

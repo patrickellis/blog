@@ -1,0 +1,99 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { CONTACT_EMAIL, DEVELOPER_NAME, LEGAL_UPDATED, PRODUCT_NAME, RETENTION_DAYS } from '../consts';
+
+const updated = new Date(LEGAL_UPDATED).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+const deleteHref = `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(`${PRODUCT_NAME} - data deletion request`)}`;
+---
+
+<Layout title={`Privacy policy | ${PRODUCT_NAME}`} description={`How ${PRODUCT_NAME} collects, uses, stores and deletes your Teamfight Tactics match data.`}>
+	<section class="section">
+		<div class="container">
+			<article class="prose">
+				<span class="eyebrow">Legal</span>
+				<h1>Privacy policy</h1>
+				<p class="meta">Last updated {updated}</p>
+
+				<p>
+					{PRODUCT_NAME} (“the service”, “we”) is a post-game coaching tool for Teamfight Tactics, built and run by {DEVELOPER_NAME}. This policy explains what data the service uses, why, how long it’s kept and how to have it deleted. In short: we only process your own match data, only to coach you, and only for as long as we need it.
+				</p>
+
+				<h2>1. What we collect</h2>
+				<table>
+					<thead>
+						<tr><th>Data</th><th>Source</th><th>Why</th></tr>
+					</thead>
+					<tbody>
+						<tr>
+							<td>Riot account identifiers (PUUID, Riot ID, region)</td>
+							<td>Riot Sign-On / ACCOUNT-V1</td>
+							<td>To confirm you own the account and to fetch your matches</td>
+						</tr>
+						<tr>
+							<td>Your recent ranked TFT match data (placement, level, round eliminated, units, star levels, items, traits)</td>
+							<td>TFT-MATCH-V1</td>
+							<td>To build your coaching report</td>
+						</tr>
+						<tr>
+							<td>Your current rank and tier</td>
+							<td>TFT-LEAGUE-V1</td>
+							<td>To compare you with anonymised players at a similar rank</td>
+						</tr>
+						<tr>
+							<td>Email address (optional)</td>
+							<td>You, if you join the waitlist or contact us</td>
+							<td>To tell you when the service launches or to reply to you</td>
+						</tr>
+					</tbody>
+				</table>
+				<p>We never receive or store your Riot password. Sign-in is handled by Riot Sign-On.</p>
+
+				<h2>2. What we don’t do</h2>
+				<ul>
+					<li>We don’t show you, or anyone else, another identifiable player’s match history or statistics.</li>
+					<li>We don’t track, profile or predict opponents, and don’t show lobby or opponent stats.</li>
+					<li>We don’t sell, rent or share personal data with advertisers or data brokers.</li>
+					<li>We don’t run anything on your device while you play, and don’t read live game state.</li>
+				</ul>
+
+				<h2>3. Rank-peer comparisons</h2>
+				<p>
+					Some parts of your report compare your results with players at a similar rank, for example average placement on a comp style. These comparisons come from aggregated, anonymised statistics. No individual player is named, shown or identifiable, and comparisons are only shown where enough games exist that no individual can be singled out.
+				</p>
+
+				<h2>4. Caching and retention</h2>
+				<p>
+					Match data is cached on our servers so we stay within Riot’s API rate limits and don’t fetch the same game twice. Cached match data and generated reports are <strong>deleted automatically after {RETENTION_DAYS} days</strong>. Anonymised aggregate statistics, which contain no personal data, may be kept longer to support rank-peer comparisons.
+				</p>
+
+				<h2>5. Deleting your data</h2>
+				<p>
+					You can ask us to delete your data at any time. Email <a href={deleteHref}>{CONTACT_EMAIL}</a> with your Riot ID. We’ll delete your cached matches, reports and account link within 30 days, usually much sooner, and confirm by email. Once signed-in accounts are live, you’ll also be able to delete your data from your account settings.
+				</p>
+
+				<h2>6. Security</h2>
+				<ul>
+					<li>Riot API keys are stored server-side only and are never exposed to browsers.</li>
+					<li>All traffic to and from the service uses HTTPS.</li>
+					<li>Access to stored data is limited to what’s needed to run the service.</li>
+				</ul>
+
+				<h2>7. Cookies</h2>
+				<p>
+					This website doesn’t use advertising or tracking cookies. When sign-in launches, the service will use a strictly necessary session cookie to keep you signed in.
+				</p>
+
+				<h2>8. Your rights</h2>
+				<p>
+					Depending on where you live (for example under UK or EU GDPR), you may have the right to access, correct, delete or export your personal data, and to object to or restrict its processing. Contact <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a> to exercise any of these rights. You can also complain to your local data protection authority.
+				</p>
+
+				<h2>9. Changes</h2>
+				<p>If this policy changes in a meaningful way, we’ll update the date above and, where appropriate, let affected users know.</p>
+
+				<h2>10. Contact</h2>
+				<p>Questions about privacy: <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>.</p>
+			</article>
+		</div>
+	</section>
+</Layout>

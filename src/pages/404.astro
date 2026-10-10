@@ -1,0 +1,39 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { PRODUCT_NAME } from '../consts';
+---
+
+<Layout title={`Page not found | ${PRODUCT_NAME}`} description="This page doesn't exist.">
+	<section class="section">
+		<div class="container not-found">
+			<span class="code mono">404</span>
+			<h1>Out of the lobby</h1>
+			<p>This page doesn’t exist, or it has moved.</p>
+			<a href="/" class="btn btn-primary" id="notfound-home">Back to the homepage</a>
+		</div>
+	</section>
+</Layout>
+
+<style>
+	.not-found {
+		text-align: center;
+		min-height: 50vh;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+	}
+	.not-found p {
+		color: var(--text-muted);
+		margin-bottom: 2rem;
+	}
+	.code {
+		font-size: clamp(4rem, 14vw, 8rem);
+		font-weight: 700;
+		line-height: 1;
+		background: var(--grad-text);
+		-webkit-background-clip: text;
+		background-clip: text;
+		color: transparent;
+	}
+</style>

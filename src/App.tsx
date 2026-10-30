@@ -9,7 +9,7 @@ import { RankingsTable } from './components/RankingsTable'
 
 export default function App() {
   return (
-    <div className="min-h-screen bg-[radial-gradient(ellipse_at_top,rgba(34,211,238,0.08),transparent_55%),radial-gradient(ellipse_at_bottom_right,rgba(245,158,11,0.05),transparent_50%)]">
+    <div className="relative min-h-screen overflow-x-clip bg-[radial-gradient(ellipse_at_top,rgba(34,211,238,0.08),transparent_55%),radial-gradient(ellipse_at_bottom_right,rgba(245,158,11,0.05),transparent_50%)]">
       <Header />
       <main className="mx-auto max-w-[1600px] space-y-12 px-4 py-6 sm:px-6 sm:py-8">
         <div id="explore" className="space-y-6">

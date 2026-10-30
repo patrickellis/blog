@@ -173,7 +173,7 @@ export function Hint({ children }: { children: ReactNode }) {
       <Info className="h-3.5 w-3.5 text-slate-500 transition group-hover:text-slate-300" aria-hidden />
       <span
         role="tooltip"
-        className="pointer-events-none absolute bottom-full left-1/2 z-50 mb-2 w-60 -translate-x-1/2 rounded-lg border border-white/10 bg-ink-800 px-3 py-2 text-xs leading-relaxed font-normal tracking-normal text-slate-300 normal-case opacity-0 shadow-xl transition group-hover:opacity-100"
+        className="pointer-events-none absolute bottom-full left-1/2 z-50 mb-2 hidden w-60 -translate-x-1/2 rounded-lg border border-white/10 bg-ink-800 px-3 py-2 text-xs leading-relaxed font-normal tracking-normal text-slate-300 normal-case shadow-xl group-hover:block"
       >
         {children}
       </span>

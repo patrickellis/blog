@@ -32,6 +32,9 @@ Run `npm test && npm run build` before considering a change done.
 ## Rendering
 
 - Don't put `backdrop-blur` on large or numerous elements (e.g. the `panel` utility). Each one becomes its own blurred compositor layer, and with the continuously animating WebGL globe this starves raster and causes missing or late-drawn text. Keep it to small overlays (header, dropdowns, drawer).
+- The globe section is `z-10` on purpose: it holds a WebGL canvas and is sticky, so any content painted *above* it gets promoted to its own compositor layer ("overlaps other composited content"). Before this it was 21 layers and about 30 viewports of tiles, enough to blow the GPU tile budget so text went missing. Don't lower it or give later siblings a higher z-index.
+- Don't leave invisible popovers in layout (`opacity-0` / `invisible` absolute boxes). They still widen the page's scrollable area (mobile horizontal scroll) and force layers. Render them only when shown (`hidden group-hover:block`, or conditional render).
+- `overflow-*-auto` scrollers containing absolutely positioned children (`sr-only`, tooltips) must be `relative`, or those children escape the clip and widen the page. `App` has `overflow-x-clip` only as a safety net.
 
 ## Data conventions
 

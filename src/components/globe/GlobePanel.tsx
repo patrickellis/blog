@@ -251,7 +251,7 @@ export function GlobePanel() {
 
   return (
     <section
-      className="panel relative flex h-[560px] flex-col overflow-hidden sm:h-[640px] lg:sticky lg:top-20 lg:h-[calc(100vh-6rem)] lg:max-h-[880px] lg:min-h-[620px]"
+      className="panel relative z-10 flex h-[560px] flex-col overflow-hidden sm:h-[640px] lg:sticky lg:top-20 lg:h-[calc(100vh-6rem)] lg:max-h-[880px] lg:min-h-[620px]"
       aria-label="Interactive globe"
     >
       <div ref={header} className="pointer-events-none z-10 flex flex-wrap items-start justify-between gap-3 p-4 sm:absolute sm:inset-x-0 sm:top-0 sm:p-5">

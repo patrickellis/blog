@@ -126,7 +126,7 @@ export function RankingsTable() {
         </button>
       </div>
 
-      <div className="panel scrollbar-thin overflow-x-auto">
+      <div className="panel scrollbar-thin relative overflow-x-auto">
         <table className="w-full min-w-[960px] text-sm">
           <thead className="border-b border-white/10 text-left text-xs text-slate-400">
             <tr>

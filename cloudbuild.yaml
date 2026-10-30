@@ -1,19 +1,26 @@
 steps:
-  # Step 1: Install Node.js dependencies using the official Node.js 20 image
-  # This image is pulled directly from Docker Hub.
-  - name: "node:20"
+  # Step 1: Install Node.js dependencies from the lockfile using the official Node.js 22 image
+  # This image is pulled directly from Docker Hub. Vite 8 requires Node >= 20.19 / 22.12.
+  - name: "node:22"
     entrypoint: "npm"
-    args: ["install"]
+    args: ["ci"]
     id: "npm-install"
 
-  # Step 2: Build the static site using the same official image
-  - name: "node:20"
+  # Step 2: Run unit tests (tax engine + dataset integrity) – a failure blocks the deploy
+  - name: "node:22"
     entrypoint: "npm"
-    args: ["run", "build"]
-    id: "astro-build"
+    args: ["test"]
+    id: "test"
     waitFor: ["npm-install"]
 
-  # Step 3: Deploy to Google Cloud Storage
+  # Step 3: Build the static site (typecheck + Vite build into dist/)
+  - name: "node:22"
+    entrypoint: "npm"
+    args: ["run", "build"]
+    id: "vite-build"
+    waitFor: ["test"]
+
+  # Step 4: Deploy to Google Cloud Storage
   - name: "gcr.io/google.com/cloudsdktool/cloud-sdk"
     entrypoint: gcloud
     args:
@@ -23,9 +30,9 @@ steps:
       - "dist/"
       - "gs://${_BUCKET_NAME}"
     id: "deploy-to-gcs"
-    waitFor: ["astro-build"]
+    waitFor: ["vite-build"]
 
-  # Step 4: Invalidate CDN Cache
+  # Step 5: Invalidate CDN Cache
   - name: "gcr.io/google.com/cloudsdktool/cloud-sdk"
     entrypoint: gcloud
     args:

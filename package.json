@@ -1,27 +1,37 @@
 {
-  "name": "blog",
+  "name": "expat-compass",
+  "private": true,
+  "version": "0.1.0",
   "type": "module",
-  "version": "0.0.1",
   "scripts": {
-    "dev": "astro dev",
-    "build": "astro build",
-    "preview": "astro preview",
-    "astro": "astro"
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc -b",
+    "test": "vitest run"
   },
   "dependencies": {
-    "@astrojs/check": "^0.9.4",
-    "@astrojs/mdx": "^4.3.0",
-    "@astrojs/rss": "^4.0.12",
-    "@astrojs/sitemap": "^3.4.1",
-    "@tailwindcss/vite": "^4.1.10",
-    "astro": "^5.10.1",
-    "fuse.js": "^7.1.0",
-    "sharp": "^0.34.2",
-    "tailwindcss": "^4.1.10",
-    "typescript": "^5.8.3"
+    "lucide-react": "1.60.0",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "react-globe.gl": "2.38.0",
+    "three": "0.186.1",
+    "topojson-client": "3.1.0",
+    "world-atlas": "2.0.2",
+    "zustand": "5.0.16"
   },
-  "engines": {
-    "node": ">=18.17.0",
-    "npm": ">=9.0.0"
+  "devDependencies": {
+    "@tailwindcss/vite": "4.3.3",
+    "@types/geojson": "7946.0.16",
+    "@types/node": "24.19.2",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "@types/three": "0.186.0",
+    "@types/topojson-client": "3.1.5",
+    "@vitejs/plugin-react": "6.1.2",
+    "tailwindcss": "4.3.3",
+    "typescript": "6.0.3",
+    "vite": "8.3.5",
+    "vitest": "5.0.5"
   }
 }

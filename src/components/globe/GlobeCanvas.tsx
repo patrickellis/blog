@@ -192,6 +192,8 @@ interface Props {
   styles: Map<string, PolyStyle>
   hovered: string | null
   hoveredName: string | null
+  /** Pinned destination: highlighted like a hover until unpinned. */
+  selected: string | null
   markers: Marker[]
   arcs: Arc[]
   labels: Label[]
@@ -237,7 +239,7 @@ const MAX_PIXEL_RATIO = 2
 const MIN_PIXEL_RATIO = 1
 const TARGET_FPS = 50
 
-function GlobeCanvas({ width, height, styles, hovered, hoveredName, markers, arcs, labels, rotate, focus, onHover, onPick, onBackground }: Props) {
+function GlobeCanvas({ width, height, styles, hovered, hoveredName, selected, markers, arcs, labels, rotate, focus, onHover, onPick, onBackground }: Props) {
   const ref = useRef<GlobeMethods | undefined>(undefined)
   const wrap = useRef<HTMLDivElement>(null)
   const material = useMemo(() => new MeshPhongMaterial({ color: OCEAN, emissive: '#040a1c', shininess: 6 }), [])
@@ -366,12 +368,12 @@ function GlobeCanvas({ width, height, styles, hovered, hoveredName, markers, arc
     }
   }, [atlas, material])
 
-  // Recolour the merged caps/outlines. A style change repaints everything; a hover change only the two affected ids.
-  const painted = useRef<{ styles: Map<string, PolyStyle> | null; hovered: string | null }>({ styles: null, hovered: null })
+  // Recolour the merged caps/outlines. A style change repaints everything; a hover/pin change only the affected ids.
+  const painted = useRef<{ styles: Map<string, PolyStyle> | null; hovered: string | null; selected: string | null }>({ styles: null, hovered: null, selected: null })
   useEffect(() => {
     if (!merged) return
     const prev = painted.current
-    const ids = prev.styles === styles ? [prev.hovered, hovered].filter((x): x is string => !!x) : [...merged.caps.ranges.keys()]
+    const ids = prev.styles === styles ? [prev.hovered, hovered, prev.selected, selected].filter((x): x is string => !!x) : [...merged.caps.ranges.keys()]
     const fill = (layer: MergedLayer, id: string, c: [number, number, number, number]) => {
       const arr = (layer.geom.getAttribute('color') as Float32BufferAttribute).array as Float32Array
       for (const [start, end] of layer.ranges.get(id) ?? []) for (let i = start * 4; i < end * 4; i += 4) (arr[i] = c[0]), (arr[i + 1] = c[1]), (arr[i + 2] = c[2]), (arr[i + 3] = c[3])
@@ -379,14 +381,14 @@ function GlobeCanvas({ width, height, styles, hovered, hoveredName, markers, arc
     for (const id of ids) {
       const s = styles.get(id) ?? DEFAULT_STYLE
       const raised = s.alt > RAISED_ALT
-      const hot = id === hovered
+      const hot = id === hovered || id === selected
       fill(merged.caps, id, raised ? HIDDEN : rgba(hot ? s.cap.replace(/[\d.]+\)$/, '0.99)') : s.cap))
       fill(merged.outlines, id, raised ? HIDDEN : hot ? HOVER_STROKE : rgba(s.stroke))
     }
     merged.caps.geom.getAttribute('color').needsUpdate = true
     merged.outlines.geom.getAttribute('color').needsUpdate = true
-    painted.current = { styles, hovered }
-  }, [merged, styles, hovered])
+    painted.current = { styles, hovered, selected }
+  }, [merged, styles, hovered, selected])
 
   // Adaptive resolution: start sharp, step the pixel ratio down until we hold ~50fps.
   useEffect(() => {
@@ -474,7 +476,7 @@ function GlobeCanvas({ width, height, styles, hovered, hoveredName, markers, arc
   // memoised by what they actually read: hovering only re-digests the (few) raised polygons, never arcs or labels.
   const polygonAccessors = useMemo(() => {
     const styleOf = (d: object) => styles.get((d as GeoFeature).dest!) ?? DEFAULT_STYLE
-    const isHover = (d: object) => (d as GeoFeature).dest === hovered
+    const isHover = (d: object) => (d as GeoFeature).dest === hovered || (d as GeoFeature).dest === selected
     return {
       // Brighten but stay translucent: flipping material.transparent forces three.js to re-sort and re-validate programs.
       cap: (d: object) => (isHover(d) ? styleOf(d).cap.replace(/[\d.]+\)$/, '0.99)') : styleOf(d).cap),
@@ -482,8 +484,8 @@ function GlobeCanvas({ width, height, styles, hovered, hoveredName, markers, arc
       stroke: (d: object) => (isHover(d) ? 'rgba(255,255,255,0.95)' : styleOf(d).stroke),
       altitude: (d: object) => styleOf(d).alt + (isHover(d) ? 0.02 : 0),
     }
-  }, [styles, hovered])
-  const pointAltitude = useMemo(() => (d: object) => ((d as Marker).id === hovered ? 0.06 : 0.035), [hovered])
+  }, [styles, hovered, selected])
+  const pointAltitude = useMemo(() => (d: object) => ((d as Marker).id === hovered || (d as Marker).id === selected ? 0.06 : 0.035), [hovered, selected])
 
   return (
     <div

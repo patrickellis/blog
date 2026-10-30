@@ -31,6 +31,7 @@ export const americas: Country[] = [
     headline: { topIncome: 0.37, cgt: '0% / 15% / 20% (+3.8% NIIT, + state)', dividends: '0% – 23.8% (qualified)', wealth: 'None', inheritance: 'Estate tax 40% above $15M' },
     exitTax: 'Expatriation tax for “covered expatriates” (net worth > $2M) who renounce citizenship or a long-term green card.',
     visas: ['H-1B', 'O-1 extraordinary ability', 'EB-5 investor ($800k+)', 'E-2 treaty investor'],
+    sources: { income: 'https://www.irs.gov/filing/federal-income-tax-rates-and-brackets', gains: 'https://www.irs.gov/taxtopics/tc409', dividends: 'https://www.irs.gov/taxtopics/tc404', inheritance: 'https://www.irs.gov/businesses/small-businesses-self-employed/estate-tax', visas: { 'H-1B': 'https://www.uscis.gov/working-in-the-united-states/h-1b-specialty-occupations', 'O-1 extraordinary ability': 'https://www.uscis.gov/working-in-the-united-states/temporary-workers/o-1-visa-individuals-with-extraordinary-ability-or-achievement', 'EB-5 investor ($800k+)': 'https://www.uscis.gov/working-in-the-united-states/permanent-workers/eb-5-immigrant-investor-program', 'E-2 treaty investor': 'https://www.uscis.gov/working-in-the-united-states/temporary-workers/e-2-treaty-investors' } },
     notes: ['US citizens are taxed on worldwide income wherever they live (FEIE/foreign tax credits soften this).', 'State income tax ranges from 0% (AK, FL, NV, NH, SD, TN, TX, WA, WY) to 13.3% (CA); some cities add their own.'],
     hdi: 0.927, english: 'Native', utc: '-5',
   },
@@ -45,7 +46,7 @@ export const americas: Country[] = [
     },
     regimes: [
       {
-        id: 'pr-act60', name: 'Act 60 Resident Investor',
+        id: 'pr-act60', name: 'Act 60 Resident Investor', url: 'https://docs.pr.gov/files/DDEC/Co%CC%81digo%20de%20Incentivos/Puerto%20Rico%27s%20Incentives%20Code%20Brochure%20_%20Ingl%C3%A9s%20Marzo%202025.pdf',
         summary: '0% Puerto Rico tax on dividends, interest and capital gains accrued after becoming resident. Requires $10k annual charity donation and $5k fee.',
         duration: 'Through 2035', eligibility: 'Not PR resident in prior 10 years; buy a residence within 2 years; bona fide residency.',
         capital: { gains: EXEMPT, dividends: EXEMPT, interest: EXEMPT }, fixedAnnualTax: 15000,
@@ -79,6 +80,7 @@ export const americas: Country[] = [
     headline: { topIncome: 0.535, cgt: 'Up to ~27% (50% inclusion)', dividends: 'As income (credit for Canadian)', wealth: 'None', inheritance: 'None (deemed disposition at death)' },
     exitTax: 'Departure tax: deemed disposition of most assets at market value when emigrating.',
     visas: ['Express Entry', 'Global Talent Stream', 'Start-up Visa'],
+    sources: { income: 'https://www.canada.ca/en/revenue-agency/services/tax/individuals/tax-rates-brackets.html', gains: 'https://www.canada.ca/en/revenue-agency/services/tax/individuals/topics/about-your-tax-return/tax-return/completing-a-tax-return/personal-income/line-12700-capital-gains.html', visas: { 'Express Entry': 'https://www.canada.ca/en/immigration-refugees-citizenship/services/immigrate-canada/express-entry.html', 'Global Talent Stream': 'https://www.canada.ca/en/employment-social-development/services/foreign-workers/global-talent.html', 'Start-up Visa': 'https://www.canada.ca/en/immigration-refugees-citizenship/services/immigrate-canada/start-visa.html' } },
     notes: ['Provincial tax comes on top of federal tax; combined top rates range from 44.5% (Nunavut) to 54.8% (Newfoundland and Labrador).', 'Eligible Canadian dividends are taxed far lower than shown via the dividend tax credit.'],
     hdi: 0.939, english: 'Native', utc: '-5',
   },
@@ -217,7 +219,7 @@ export const americas: Country[] = [
     },
     regimes: [
       {
-        id: 'uy-holiday', name: 'Tax holiday',
+        id: 'uy-holiday', name: 'Tax holiday', url: 'https://www.gub.uy/direccion-general-impositiva/comunicacion/publicaciones/tax-holidays-opcion-para-nuevos-residentes-fiscales-uruguay',
         summary: 'Foreign dividends and interest are exempt (or taxed at 7% permanently instead).',
         duration: '11 years', eligibility: 'New tax residents not resident in the prior 5 years.',
         capital: { dividends: FOREIGN_EXEMPT, interest: FOREIGN_EXEMPT },

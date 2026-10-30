@@ -11,6 +11,7 @@ export const middleEastAfrica: Country[] = [
     ],
     headline: { topIncome: 0, cgt: '0%', dividends: '0%', wealth: 'None', inheritance: 'None (Sharia rules may apply to estates)' },
     visas: ['Golden Visa (AED 2M property or skilled talent)', 'Green Visa (freelancers)', 'Remote work visa'],
+    sources: { visas: { 'Golden Visa (AED 2M property or skilled talent)': 'https://u.ae/en/information-and-services/visa-and-emirates-id/residence-visas/golden-visa', 'Green Visa (freelancers)': 'https://u.ae/en/information-and-services/visa-and-emirates-id/Types-of-visas/Investor-visa/green-visa' } },
     notes: ['No social security for expats — employers pay an end-of-service gratuity instead.', '9% corporate tax applies to business profits above AED 375k.', 'Tax residency certificate needs 183 days (or 90 days with permanent home).'],
     hdi: 0.94, english: 'High', utc: '+4',
   },
@@ -60,7 +61,7 @@ export const middleEastAfrica: Country[] = [
     },
     regimes: [
       {
-        id: 'il-oleh', name: 'New immigrant exemption', manualOnly: true,
+        id: 'il-oleh', name: 'New immigrant exemption', manualOnly: true, url: 'https://www.gov.il/en/pages/immigrant-guide-1?chapterIndex=5',
         summary: 'Foreign-source income and gains are exempt for 10 years for new immigrants and senior returning residents.',
         duration: '10 years', eligibility: 'New immigrants under the Law of Return or residents returning after 10+ years abroad.',
         capital: ALL_CAPITAL_EXEMPT,

@@ -231,6 +231,15 @@ describe('dataset integrity', () => {
     for (const d of DESTINATIONS.filter((x) => x.subdivision)) expect(ids.has(d.id), d.id).toBe(true)
   })
 
+  it('official links are https and match a listed visa', () => {
+    for (const c of COUNTRIES) {
+      const { visas, ...pages } = c.sources ?? {}
+      const urls = [...Object.values(pages), ...Object.values(visas ?? {}), ...(c.regimes ?? []).map((r) => r.url)].filter((u): u is string => !!u)
+      for (const u of urls) expect(new URL(u).protocol, `${c.name}: ${u}`).toBe('https:')
+      for (const v of Object.keys(visas ?? {})) expect(c.visas, `${c.name}: unknown visa "${v}"`).toContain(v)
+    }
+  })
+
   it.each(DESTINATIONS.map((c) => [c.label, c] as const))('%s is well-formed', (_, c) => {
     expect(FALLBACK_RATES[c.currency]).toBeDefined()
     expect(c.cities.length).toBeGreaterThan(0)

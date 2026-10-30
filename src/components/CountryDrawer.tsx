@@ -6,6 +6,7 @@ import { isEligible } from '../lib/tax'
 import { computeRow, HOUSING_LABEL, regimeChoiceFor, useRows } from '../state/results'
 import { useApp } from '../state/store'
 import { RegionalSpread, RegionalTaxBreakdown } from './RegionalSpread'
+import { TaxGlance } from './TaxGlance'
 import { Delta, ExtLink, Flag } from './ui'
 
 function Section({ icon, title, children }: { icon: React.ReactNode; title: string; children: React.ReactNode }) {
@@ -193,21 +194,8 @@ export function CountryDrawer() {
 
           <Section icon={<ScrollText className="h-4 w-4 text-cyan-300" />} title="Tax system at a glance">
             <RegionalTaxBreakdown row={row} />
-            <dl className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-3">
-              {[
-                [kind ? `Top income rate (${kind.national.toLowerCase()} + ${kind.adjective.toLowerCase()})` : 'Top income rate', pct(country.headline.topIncome, 1)],
-                ['Capital gains', country.headline.cgt],
-                ['Dividends', country.headline.dividends],
-                ['Wealth tax', country.headline.wealth],
-                ['Inheritance', country.headline.inheritance],
-                ['Basis', country.territorial ? 'Territorial' : country.citizenshipTaxation ? 'Citizenship + residence' : 'Residence (worldwide)'],
-              ].map(([k, v]) => (
-                <div key={k} className="rounded-xl bg-white/[0.03] p-3 ring-1 ring-white/5">
-                  <dt className="text-xs text-slate-500">{k}</dt>
-                  <dd className="mt-0.5 font-medium text-slate-100">{v}</dd>
-                </div>
-              ))}
-            </dl>
+            <TaxGlance row={row} />
+            <p className="text-xs text-slate-500">Hover or tap a card for the full bands and rules{country.sources ? ', with links to official guidance' : ''}.</p>
             {country.exitTax && (
               <div className="flex gap-2 rounded-xl bg-amber-400/10 p-3 text-sm text-amber-100 ring-1 ring-amber-400/25">
                 <DoorOpen className="mt-0.5 h-4 w-4 shrink-0 text-amber-300" />

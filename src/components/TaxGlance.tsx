@@ -1,5 +1,6 @@
 import { BadgePercent, Info } from 'lucide-react'
 import type { ReactNode } from 'react'
+import { subdivisionLabel } from '../data/countries'
 import { cx, money, pct } from '../lib/format'
 import type { Row } from '../state/results'
 import type { Brackets, LocalTax, Regime, SocialItem, TaxSystem, Treatment, WealthTax } from '../types'
@@ -128,7 +129,7 @@ function IncomeDetail({ row, m }: { row: Row; m: Fmt }) {
           sys.socialDeductible && 'Social contributions are deducted before income tax.',
         ]}
       />
-      {!!regional.length && <Sub>National</Sub>}
+      {!!regional.length && <Sub>{row.dest.subdivision ? subdivisionLabel(row.dest).national : 'National'}</Sub>}
       <Bands brackets={sys.brackets} m={m} head={sys.allowance || ded ? 'Taxable income' : 'Income'} />
       <Facts
         className="mt-2"
@@ -319,8 +320,14 @@ export function TaxGlance({ row }: { row: Row }) {
   const src = c.sources ?? {}
   const m: Fmt = (v) => money(v, c.currency)
   const [basisLabel, basisText] = basis(row)
+  const kind = c.subdivision && subdivisionLabel(c)
   const cards: Card[] = [
-    { label: 'Top income rate', value: pct(c.headline.topIncome, 1), detail: <IncomeDetail row={row} m={m} />, href: src.income },
+    {
+      label: kind ? `Top income rate (${kind.national.toLowerCase()} + ${kind.adjective.toLowerCase()})` : 'Top income rate',
+      value: pct(c.headline.topIncome, 1),
+      detail: <IncomeDetail row={row} m={m} />,
+      href: src.income,
+    },
     { label: 'Capital gains', value: c.headline.cgt, detail: <CapitalDetail row={row} k="gains" m={m} />, href: src.gains },
     { label: 'Dividends', value: c.headline.dividends, detail: <CapitalDetail row={row} k="dividends" m={m} />, href: src.dividends },
     { label: 'Wealth tax', value: c.headline.wealth, detail: wealthDetail(row, m), href: src.wealth },

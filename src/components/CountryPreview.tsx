@@ -1,4 +1,4 @@
-import { ArrowRight, BadgePercent, Home, Minus, Plus, X } from 'lucide-react'
+import { ArrowRight, BadgePercent, Home, Minus, Pin, PinOff, Plus } from 'lucide-react'
 import { subdivisionLabel } from '../data/countries'
 import { cx, money, pct } from '../lib/format'
 import { useFx } from '../state/fx-context'
@@ -7,7 +7,11 @@ import { useApp } from '../state/store'
 import { RegionalSpread } from './RegionalSpread'
 import { Delta, Flag } from './ui'
 
-export function CountryPreview({ row, pinned, onClose }: { row: Row; pinned?: boolean; onClose?: () => void }) {
+/**
+ * Destination summary. Hover previews are compact; a pinned card gets a "Pinned" bar and actions, and when `docked`
+ * it fills its container's height (scrolling body, actions fixed at the bottom) and lists every city and tax line.
+ */
+export function CountryPreview({ row, pinned, docked, onClose }: { row: Row; pinned?: boolean; docked?: boolean; onClose?: () => void }) {
   const { currency, profile } = useApp()
   const { toggleTarget, setHome, openDrawer } = useApp.getState()
   const c = row.dest
@@ -16,9 +20,23 @@ export function CountryPreview({ row, pinned, onClose }: { row: Row; pinned?: bo
   const maxCol = Math.max(...c.cities.map((x) => x.col), 100)
 
   return (
-    <div className="w-[340px] max-w-full overflow-hidden rounded-2xl border border-white/15 bg-ink-900/95 text-left shadow-2xl shadow-black/60 backdrop-blur-xl">
-      <div className={cx('h-1', row.isHome ? 'bg-home' : row.isTarget ? 'bg-target' : 'bg-gradient-to-r from-teal-400/60 to-cyan-400/20')} />
-      <div className="p-4">
+    <div
+      className={cx(
+        'max-w-full overflow-hidden rounded-2xl border text-left shadow-2xl shadow-black/60',
+        // A full-height docked card must not blur: a large backdrop-filter layer starves raster next to the animating globe.
+        docked ? 'flex h-full w-full flex-col border-cyan-300/25 bg-ink-900' : 'w-[340px] border-white/15 bg-ink-900/95 backdrop-blur-xl',
+      )}
+    >
+      <div className={cx('h-1 shrink-0', row.isHome ? 'bg-home' : row.isTarget ? 'bg-target' : 'bg-gradient-to-r from-teal-400/60 to-cyan-400/20')} />
+      {pinned && (
+        <div className="flex shrink-0 items-center gap-1.5 border-b border-white/10 bg-cyan-400/[0.06] py-1 pr-2 pl-4 text-[11px] font-semibold tracking-[0.08em] text-cyan-200 uppercase">
+          <Pin className="h-3 w-3" aria-hidden /> Pinned
+          <button onClick={onClose} className="btn-ghost ml-auto gap-1 px-2 py-0.5 text-xs font-medium tracking-normal normal-case" title="Unpin (Esc)">
+            <PinOff className="h-3.5 w-3.5" /> Unpin
+          </button>
+        </div>
+      )}
+      <div className={cx('p-4', docked && 'scrollbar-thin min-h-0 flex-1 overflow-y-auto')}>
         <div className="flex items-start gap-3">
           <Flag iso={c.iso2} className="text-3xl" />
           <div className="min-w-0 flex-1">
@@ -32,11 +50,6 @@ export function CountryPreview({ row, pinned, onClose }: { row: Row; pinned?: bo
               {row.city.name} · {c.currency} · UTC{c.utc}
             </div>
           </div>
-          {pinned && (
-            <button onClick={onClose} className="btn-ghost -mt-1 -mr-2 p-1.5" aria-label="Close">
-              <X className="h-4 w-4" />
-            </button>
-          )}
         </div>
 
         <div className="mt-4 grid grid-cols-2 gap-x-4 gap-y-3">
@@ -105,7 +118,7 @@ export function CountryPreview({ row, pinned, onClose }: { row: Row; pinned?: bo
             </span>
           </div>
           <ul className="space-y-1">
-            {c.cities.slice(0, 4).map((city) => (
+            {(docked ? c.cities : c.cities.slice(0, 4)).map((city) => (
               <li key={city.name} className={cx('grid grid-cols-[1fr_auto_auto_56px] items-center gap-2 text-xs', city === row.city ? 'text-white' : 'text-slate-300')}>
                 <span className="truncate">{city.name}</span>
                 <span className={cx('tabular-nums', profile.household === 'single' && 'font-semibold')}>{money(city.rent1 * fxUsd, currency, { compact: true })}</span>
@@ -121,27 +134,44 @@ export function CountryPreview({ row, pinned, onClose }: { row: Row; pinned?: bo
           </ul>
         </div>
 
-        {pinned ? (
-          <div className="mt-4 flex flex-wrap gap-2">
-            {!row.isHome && (
-              <button onClick={() => toggleTarget(c.id)} className={row.isTarget ? 'btn-outline' : 'btn-primary'}>
-                {row.isTarget ? <Minus className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
-                {row.isTarget ? 'Remove' : 'Compare'}
-              </button>
-            )}
-            {!row.isHome && (
-              <button onClick={() => setHome(c.id)} className="btn-outline" title="Use as where you live now">
-                <Home className="h-4 w-4" /> Set home
-              </button>
-            )}
-            <button onClick={() => openDrawer(c.id)} className="btn-ghost ml-auto">
-              Details <ArrowRight className="h-4 w-4" />
-            </button>
+        {docked && (
+          <div className="mt-4">
+            <div className="mb-1.5 flex items-center justify-between">
+              <span className="label">Your tax bill</span>
+              <span className="text-[11px] text-slate-500 tabular-nums">{money(row.tax, currency, { compact: true })} / yr</span>
+            </div>
+            <dl className="space-y-1 text-xs">
+              {res.lines.map((l) => (
+                <div key={l.key} className="flex justify-between gap-3">
+                  <dt className="truncate text-slate-400">{l.label}</dt>
+                  <dd className="text-slate-200 tabular-nums">−{money(l.amount * row.toDisplay, currency, { compact: true })}</dd>
+                </div>
+              ))}
+            </dl>
           </div>
-        ) : (
-          <div className="mt-3 text-center text-[11px] text-slate-500">Click to pin · compare · view full details</div>
         )}
       </div>
+
+      {pinned ? (
+        <div className={cx('flex shrink-0 flex-wrap gap-2 px-4 pb-4', docked ? 'border-t border-white/10 pt-3' : 'pt-0')}>
+          {!row.isHome && (
+            <button onClick={() => toggleTarget(c.id)} className={row.isTarget ? 'btn-outline' : 'btn-primary'}>
+              {row.isTarget ? <Minus className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
+              {row.isTarget ? 'Remove' : 'Compare'}
+            </button>
+          )}
+          {!row.isHome && (
+            <button onClick={() => setHome(c.id)} className="btn-outline" title="Use as where you live now">
+              <Home className="h-4 w-4" /> Set home
+            </button>
+          )}
+          <button onClick={() => openDrawer(c.id)} className="btn-ghost ml-auto">
+            Details <ArrowRight className="h-4 w-4" />
+          </button>
+        </div>
+      ) : (
+        <div className="-mt-1 px-4 pb-3 text-center text-[11px] text-slate-500">Click to pin · compare · view full details</div>
+      )}
     </div>
   )
 }

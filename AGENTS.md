@@ -43,6 +43,12 @@ Run `npm test && npm run build` before considering a change done.
 - Regimes whose eligibility depends on personal status (heritage, self-employment) must set `manualOnly: true`.
 - The home country never auto-applies newcomer regimes (`regimeChoiceFor`).
 - Rules reflect the 2025 tax year (`DATA_YEAR`); note announced changes in `notes`.
+- Official links: `Regime.url` and `Country.sources` (`income`, `gains`, `dividends`, `wealth`, `inheritance`, `visas` keyed by the exact visa name). Only add government pages you've actually loaded; tests enforce https and matching visa names.
+
+## UI notes
+
+- "Tax system at a glance" cards (`TaxGlance.tsx`) derive their hover detail from the structured tax data, so new tax fields should be described there too. `HoverCard` (in `ui.tsx`) keeps its panel in DOM order but `position: fixed`, so don't add transforms to the drawer or its ancestors.
+- A pinned globe destination docks as a full-height card on the right (`GlobePanel`, `DOCK_W`); below `COMPACT_W` it's a bottom sheet. The pinned id is passed to `GlobeCanvas` as `selected` and highlighted like a hover.
 
 ## Globe performance (`GlobeCanvas.tsx`)
 

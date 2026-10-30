@@ -25,7 +25,7 @@ export const europe: Country[] = [
     },
     regimes: [
       {
-        id: 'gb-fig', name: '4-year FIG regime',
+        id: 'gb-fig', name: '4-year FIG regime', url: 'https://www.gov.uk/guidance/check-if-you-can-claim-the-4-year-foreign-income-and-gains-regime',
         summary: 'Foreign income and gains are fully exempt for the first four tax years of UK residence. Replaced the non-dom remittance basis from April 2025.',
         duration: '4 years', eligibility: 'Not UK tax resident in any of the previous 10 tax years.',
         capital: ALL_CAPITAL_EXEMPT,
@@ -39,6 +39,7 @@ export const europe: Country[] = [
     headline: { topIncome: 0.47, cgt: '18% / 24%', dividends: '8.75% – 39.35%', wealth: 'None', inheritance: '40% above £325k' },
     exitTax: 'No general exit tax; gains realised within 5 years of leaving can be taxed on return.',
     visas: ['Global Talent', 'Skilled Worker', 'Innovator Founder'],
+    sources: { income: 'https://www.gov.uk/income-tax-rates', gains: 'https://www.gov.uk/capital-gains-tax/rates', dividends: 'https://www.gov.uk/tax-on-dividends', inheritance: 'https://www.gov.uk/inheritance-tax', visas: { 'Global Talent': 'https://www.gov.uk/global-talent', 'Skilled Worker': 'https://www.gov.uk/skilled-worker-visa', 'Innovator Founder': 'https://www.gov.uk/innovator-founder-visa' } },
     notes: ['Scotland has its own income tax bands (not modelled).', 'ISAs and pensions shelter investments from tax.'],
     hdi: 0.946, english: 'Native', utc: '+0',
   },
@@ -60,13 +61,13 @@ export const europe: Country[] = [
     },
     regimes: [
       {
-        id: 'ie-sarp', name: 'SARP relief',
+        id: 'ie-sarp', name: 'SARP relief', url: 'https://www.revenue.ie/en/personal-tax-credits-reliefs-and-exemptions/income-and-employment/special-assignee-relief-programme/index.aspx',
         summary: '30% of employment income between €100k and €1M is exempt from income tax (USC and PRSI still apply).',
         duration: '5 years', eligibility: 'Assigned to Ireland by an employer you worked for abroad for 6+ months, salary ≥ €100k.',
         requiresSalary: true, minSalary: 100000, salaryExempt: { pct: 0.3, floor: 100000, ceiling: 1000000 },
       },
       {
-        id: 'ie-nondom', name: 'Non-domicile remittance basis',
+        id: 'ie-nondom', name: 'Non-domicile remittance basis', url: 'https://www.revenue.ie/en/jobs-and-pensions/tax-residence/domicile-domicile-levy.aspx',
         summary: 'Foreign investment income and gains are only taxed if brought into Ireland.',
         duration: 'While non-domiciled', eligibility: 'Irish resident but domiciled elsewhere; assumes income is not remitted.',
         capital: ALL_CAPITAL_EXEMPT,
@@ -78,6 +79,7 @@ export const europe: Country[] = [
     ],
     headline: { topIncome: 0.52, cgt: '33%', dividends: 'Up to 52% (as income)', wealth: 'None', inheritance: '33% above thresholds' },
     visas: ['Critical Skills Employment Permit', 'Stamp 0 (financially independent)'],
+    sources: { income: 'https://www.revenue.ie/en/personal-tax-credits-reliefs-and-exemptions/tax-relief-charts/index.aspx', gains: 'https://www.revenue.ie/en/gains-gifts-and-inheritance/transfering-an-asset/how-to-calculate-cgt.aspx', inheritance: 'https://www.revenue.ie/en/gains-gifts-and-inheritance/cat-thresholds-rates-and-aggregation-rules/index.aspx', visas: { 'Critical Skills Employment Permit': 'https://enterprise.gov.ie/en/what-we-do/workplace-and-skills/employment-permits/permit-types/critical-skills-employment-permit/', 'Stamp 0 (financially independent)': 'https://www.irishimmigration.ie/registering-your-immigration-permission/information-on-registering/immigration-permission-stamps/' } },
     notes: ['Accumulating ETFs face a special 41% exit tax with deemed disposal every 8 years.'],
     hdi: 0.949, english: 'Native', utc: '+0',
   },
@@ -98,7 +100,7 @@ export const europe: Country[] = [
     },
     regimes: [
       {
-        id: 'fr-impat', name: 'Impatriate regime',
+        id: 'fr-impat', name: 'Impatriate regime', url: 'https://www.impots.gouv.fr/international-particulier/le-regime-des-impatries',
         summary: '~30% of salary exempt as an impatriation bonus and 50% of foreign passive income exempt from income tax (social charges still due).',
         duration: '8 years', eligibility: 'Recruited from abroad; not French resident in the previous 5 years.',
         requiresSalary: true, salaryExempt: { pct: 0.3 },
@@ -113,6 +115,7 @@ export const europe: Country[] = [
     headline: { topIncome: 0.49, cgt: '30% flat (PFU)', dividends: '30% flat (PFU)', wealth: 'IFI on real estate > €1.3M', inheritance: 'Up to 45% (direct line)' },
     exitTax: 'Exit tax on unrealised gains if holdings exceed €800k (or 50% of a company).',
     visas: ['Talent Passport', 'Long-stay visitor'],
+    sources: { income: 'https://www.service-public.gouv.fr/particuliers/vosdroits/F1419', visas: { 'Talent Passport': 'https://france-visas.gouv.fr/en/france-visas/international-talents-and-economic-attractiveness' } },
     notes: ['Family quotient lowers tax for couples/children (single filer shown).', 'Assurance-vie wrappers are very tax-efficient.'],
     hdi: 0.92, english: 'Moderate', utc: '+1',
   },
@@ -142,6 +145,7 @@ export const europe: Country[] = [
     headline: { topIncome: 0.475, cgt: '26.4% flat', dividends: '26.4% flat', wealth: 'None (suspended)', inheritance: '7% – 30% for children' },
     exitTax: 'Exit tax (§6 AStG) on holdings ≥ 1% of a company.',
     visas: ['EU Blue Card', 'Opportunity Card', 'Freelance visa'],
+    sources: { income: 'https://www.bmf-steuerrechner.de/', visas: { 'EU Blue Card': 'https://www.make-it-in-germany.com/en/visa-residence/types/eu-blue-card', 'Opportunity Card': 'https://www.make-it-in-germany.com/en/visa-residence/types/job-search-opportunity-card' } },
     notes: ['Church tax (8–9% of income tax) applies if registered.', 'Crypto held > 1 year is tax-free.'],
     hdi: 0.959, english: 'High', utc: '+1',
   },
@@ -160,7 +164,7 @@ export const europe: Country[] = [
     },
     regimes: [
       {
-        id: 'nl-30', name: '30% ruling',
+        id: 'nl-30', name: '30% ruling', url: 'https://www.belastingdienst.nl/wps/wcm/connect/en/individuals/content/coming-to-work-in-the-netherlands-30-percent-facility',
         summary: '30% of salary paid tax-free (capped at the public-sector salary norm) plus optional partial non-resident status, which removes Box 3 tax on foreign assets.',
         duration: '5 years', eligibility: 'Recruited from > 150 km away; salary ≥ €46,660 (2025).',
         requiresSalary: true, minSalary: 46660, salaryExempt: { pct: 0.3, ceiling: 246000 }, noWealthTax: true,
@@ -173,6 +177,7 @@ export const europe: Country[] = [
     ],
     headline: { topIncome: 0.495, cgt: 'None – taxed via Box 3', dividends: 'None – taxed via Box 3', wealth: '~2.1% of investments above €57k (Box 3)', inheritance: '10% – 20% for children' },
     visas: ['Highly Skilled Migrant', 'DAFT (US citizens)', 'Startup visa'],
+    sources: { visas: { 'Highly Skilled Migrant': 'https://ind.nl/en/residence-permits/work/highly-skilled-migrant', 'DAFT (US citizens)': 'https://ind.nl/en/residence-permits/work/residence-permit-self-employed-person', 'Startup visa': 'https://ind.nl/en/residence-permits/work/start-up' } },
     notes: ['Box 3 taxes a deemed return on assets rather than actual gains; reform to actual returns planned for 2028.', 'The 30% ruling drops to 27% from 2027.'],
     hdi: 0.955, english: 'Very high', utc: '+1',
   },
@@ -192,7 +197,7 @@ export const europe: Country[] = [
     },
     regimes: [
       {
-        id: 'be-expat', name: 'Expat regime (2022)',
+        id: 'be-expat', name: 'Expat regime (2022)', url: 'https://finances.belgium.be/fr/entreprises/personnel_et_remuneration/contribuables-et-chercheurs-impatries',
         summary: 'Employer can pay a tax-free allowance of up to 30% of gross salary for recurring expat costs.',
         duration: '5 years (+3)', eligibility: 'Recruited from abroad, not Belgian resident in prior 5 years, salary ≥ €75,000.',
         requiresSalary: true, minSalary: 75000, salaryExempt: { pct: 0.3 },
@@ -204,6 +209,7 @@ export const europe: Country[] = [
     ],
     headline: { topIncome: 0.535, cgt: '10% above €10k (from 2026)', dividends: '30%', wealth: '0.15% securities-account tax > €1M', inheritance: '3% – 30% (regional)' },
     visas: ['Single Permit', 'EU Blue Card'],
+    sources: { visas: { 'Single Permit': 'https://dofi.ibz.be/en/themes/third-country-nationals/work/single-permit' } },
     notes: ['New 10% tax on financial capital gains introduced from 2026 (gains up to €10k/yr exempt).'],
     hdi: 0.951, english: 'High', utc: '+1',
   },
@@ -251,7 +257,7 @@ export const europe: Country[] = [
     },
     regimes: [
       {
-        id: 'ch-forfait', name: 'Lump-sum taxation (forfait)',
+        id: 'ch-forfait', name: 'Lump-sum taxation (forfait)', url: 'https://www.efd.admin.ch/en/lump-sum-taxation',
         summary: 'Tax is based on worldwide living expenses rather than income or wealth. Indicative cost ~CHF 150k/yr; varies widely by canton.',
         duration: 'Indefinite', eligibility: 'Non-Swiss nationals not working in Switzerland. Not available in Zurich, Basel, Schaffhausen, Appenzell AR.',
         requiresNoSalary: true, replacesAll: true, fixedAnnualTax: 150000,
@@ -264,6 +270,7 @@ export const europe: Country[] = [
     focusAltitude: 0.45,
     headline: { topIncome: 0.41, cgt: '0% (private investors)', dividends: 'Taxed as income', wealth: '0.1% – 1% (cantonal)', inheritance: '0% for children in most cantons' },
     visas: ['B permit (employment)', 'Lump-sum residence'],
+    sources: { income: 'https://swisstaxcalculator.estv.admin.ch/' },
     notes: ['Tax varies enormously by canton and municipality – Zug and Schwyz are among the lowest in Europe.', 'Cantonal figures are for the main city shown; church tax and occupational pension (BVG) contributions of ~5–9% are not modelled.'],
     hdi: 0.97, english: 'High', utc: '+1',
   },
@@ -283,6 +290,7 @@ export const europe: Country[] = [
     ],
     headline: { topIncome: 0.55, cgt: '27.5%', dividends: '27.5%', wealth: 'None', inheritance: 'None' },
     visas: ['Red-White-Red Card', 'EU Blue Card'],
+    sources: { visas: { 'Red-White-Red Card': 'https://www.migration.gv.at/en/types-of-immigration/permanent-immigration/', 'EU Blue Card': 'https://www.migration.gv.at/en/types-of-immigration/permanent-immigration/eu-blue-card/' } },
     notes: ['13th and 14th month salaries are taxed at ~6% – real take-home is higher than modelled.'],
     hdi: 0.93, english: 'Very high', utc: '+1',
   },
@@ -299,13 +307,13 @@ export const europe: Country[] = [
     },
     regimes: [
       {
-        id: 'it-impat', name: 'Impatriate regime',
+        id: 'it-impat', name: 'Impatriate regime', url: 'https://www.agenziaentrate.gov.it/portale/lavoratori-impatriati-209-2023/infogen-lavoratori-impatriati-209-2023',
         summary: '50% of employment income (up to €600k) is exempt — 60% with a minor child.',
         duration: '5 years', eligibility: 'Highly qualified; not Italian resident in the prior 3 years; commit to 4 years.',
         requiresSalary: true, salaryExempt: { pct: 0.5, ceiling: 600000 },
       },
       {
-        id: 'it-flat', name: 'HNWI flat tax',
+        id: 'it-flat', name: 'HNWI flat tax', url: 'https://www.agenziaentrate.gov.it/portale/schede/agevolazioni/opzione-per-i-neo-residenti/infogen-opzionale-neo-residenti',
         summary: 'A fixed €200,000 per year replaces Italian tax on all foreign income and gains, with no IVAFE/IVIE and no inheritance tax on foreign assets.',
         duration: 'Up to 15 years', eligibility: 'Not Italian resident in 9 of the last 10 years.',
         capital: ALL_CAPITAL_EXEMPT, noWealthTax: true, fixedAnnualTax: 200000,
@@ -337,7 +345,7 @@ export const europe: Country[] = [
     },
     regimes: [
       {
-        id: 'es-beckham', name: 'Beckham law',
+        id: 'es-beckham', name: 'Beckham law', url: 'https://sede.agenciatributaria.gob.es/Sede/irpf/tengo-que-presentar-declaracion/regimen-fiscal-aplicable-trabajadores-desplazados/regimen-especial.html',
         summary: 'Flat 24% on Spanish employment income up to €600k (47% above). Foreign investment income and gains are not taxed, and wealth tax only applies to Spanish assets.',
         duration: '6 years', eligibility: 'Moving for a job, remote work or startup; not Spanish resident in prior 5 years.',
         requiresSalary: true, salaryBrackets: [[600000, 0.24], [I, 0.47]], noDeductions: true, noLocal: true, noWealthTax: true,
@@ -352,6 +360,7 @@ export const europe: Country[] = [
     headline: { topIncome: 0.47, cgt: '19% – 30%', dividends: '19% – 30%', wealth: '0.2% – 3.5% above €700k (regional)', inheritance: 'Regional; ~0% for children in Madrid/Andalusia' },
     exitTax: 'Exit tax on shares worth > €4M (or > €1M with a 25% stake) after 10 of 15 years residence.',
     visas: ['Digital Nomad', 'Non-lucrative residence', 'Highly Qualified Professional'],
+    sources: { visas: { 'Highly Qualified Professional': 'https://www.inclusion.gob.es/web/unidadgrandesempresas/profesionales-altamente-cualificados' } },
     notes: ['Half of income tax and most of wealth tax are set by the autonomous community. Where regional wealth tax is relieved, the state solidarity tax still applies above €3M.', 'The golden visa programme closed in April 2025.', 'Ceuta and Melilla (60% income-tax deduction) are not modelled.'],
     hdi: 0.918, english: 'Moderate', utc: '+1',
   },
@@ -368,7 +377,7 @@ export const europe: Country[] = [
     },
     regimes: [
       {
-        id: 'pt-ifici', name: 'IFICI (“NHR 2.0”)',
+        id: 'pt-ifici', name: 'IFICI (“NHR 2.0”)', url: 'https://info.portaldasfinancas.gov.pt/pt/apoio_contribuinte/Folhetos_informativos/Documents/incentivos_investigacao.pdf',
         summary: 'Flat 20% on qualifying Portuguese employment or business income; most foreign-source dividends, interest and capital gains exempt.',
         duration: '10 years', eligibility: 'Qualifying roles (tech, research, startups, higher education, certain investment activities); not resident in prior 5 years.',
         requiresSalary: true, salaryBrackets: [[I, 0.2]], noDeductions: true, noSurtaxes: true,
@@ -382,6 +391,7 @@ export const europe: Country[] = [
     ],
     headline: { topIncome: 0.53, cgt: '28%', dividends: '28%', wealth: 'None', inheritance: '10% stamp duty; exempt for spouse/children' },
     visas: ['Golden Visa (€500k fund)', 'D7 passive income', 'D8 Digital Nomad'],
+    sources: { visas: { 'Golden Visa (€500k fund)': 'https://aima.gov.pt/pt/viver/autorizacao-de-residencia-para-investimento-art-90-o-a', 'D7 passive income': 'https://vistos.mne.gov.pt/en/national-visas/general-information/type-of-visa', 'D8 Digital Nomad': 'https://vistos.mne.gov.pt/en/national-visas/general-information/type-of-visa' } },
     notes: ['The original NHR regime closed to new applicants in 2024.', 'Blacklisted-jurisdiction income is taxed at 35%.'],
     hdi: 0.89, english: 'Very high', utc: '+0',
   },
@@ -398,13 +408,13 @@ export const europe: Country[] = [
     },
     regimes: [
       {
-        id: 'gr-5c', name: 'Article 5C (50% exemption)',
+        id: 'gr-5c', name: 'Article 5C (50% exemption)', url: 'https://www.aade.gr/sites/default/files/2025-07/Useful%20Tax%20Guide%20for%20Greeks%20abroad%20and%20Non-residents_enriched_9.7.2025.pdf',
         summary: '50% of Greek employment or business income exempt from income tax.',
         duration: '7 years', eligibility: 'Not Greek tax resident in 5 of the last 6 years; employment in Greece.',
         requiresSalary: true, salaryExempt: { pct: 0.5 },
       },
       {
-        id: 'gr-nondom', name: 'Non-dom €100k flat tax',
+        id: 'gr-nondom', name: 'Non-dom €100k flat tax', url: 'https://www.aade.gr/sites/default/files/2025-07/Useful%20Tax%20Guide%20for%20Greeks%20abroad%20and%20Non-residents_enriched_9.7.2025.pdf',
         summary: 'A fixed €100,000 per year covers all foreign-source income, with no inheritance tax on foreign assets.',
         duration: '15 years', eligibility: 'Invest ≥ €500k in Greece within 3 years; not resident in 7 of the last 8 years.',
         capital: ALL_CAPITAL_EXEMPT, fixedAnnualTax: 100000,
@@ -416,6 +426,7 @@ export const europe: Country[] = [
     ],
     headline: { topIncome: 0.44, cgt: '15%', dividends: '5%', wealth: 'None', inheritance: '1% – 10% for close family' },
     visas: ['Golden Visa (€250k–€800k property)', 'Financially Independent Person', 'Digital Nomad'],
+    sources: { visas: { 'Golden Visa (€250k–€800k property)': 'https://migration.gov.gr/en/golden-visa/' } },
     notes: ['Pensioners can opt for a 7% flat tax on foreign income for 15 years.'],
     hdi: 0.908, english: 'High', utc: '+2',
   },
@@ -462,7 +473,7 @@ export const europe: Country[] = [
     },
     regimes: [
       {
-        id: 'mt-hqp', name: 'Highly Qualified Persons',
+        id: 'mt-hqp', name: 'Highly Qualified Persons', url: 'https://legislation.mt/eli/sl/123.126/eng/pdf',
         summary: 'Flat 15% on employment income for senior roles in finance, gaming, aviation and similar sectors.',
         duration: '5 years (+5)', eligibility: 'Eligible senior roles; salary ≥ ~€95,000.',
         requiresSalary: true, minSalary: 95000, salaryBrackets: [[5000000, 0.15], [I, 0]], noDeductions: true,
@@ -477,6 +488,7 @@ export const europe: Country[] = [
     cities: [{ name: 'Sliema / St Julian’s', rent1: 1450, rent3: 2500, col: 62 }],
     headline: { topIncome: 0.35, cgt: 'As income (non-dom: 0%)', dividends: 'As income (imputation)', wealth: 'None', inheritance: 'None (stamp duty on property)' },
     visas: ['Global Residence Programme', 'Nomad Residence Permit', 'Permanent Residence'],
+    sources: { visas: { 'Nomad Residence Permit': 'https://nomad.residencymalta.gov.mt/' } },
     notes: ['English is an official language.'],
     hdi: 0.924, english: 'Native', utc: '+1',
   },
@@ -522,7 +534,7 @@ export const europe: Country[] = [
     },
     regimes: [
       {
-        id: 'se-expert', name: 'Expert tax relief',
+        id: 'se-expert', name: 'Expert tax relief', url: 'https://forskarskattenamnden.se/andra-sprak/taxation-of-research-workers-board/about-tax-relief',
         summary: '25% of salary and benefits are exempt from income tax and social contributions.',
         duration: '7 years', eligibility: 'Recruited from abroad; monthly salary > ~SEK 107,000 (2025).',
         requiresSalary: true, minSalary: 1284000, salaryExempt: { pct: 0.25 },
@@ -534,6 +546,7 @@ export const europe: Country[] = [
     ],
     headline: { topIncome: 0.52, cgt: '30% (ISK ~0.9% of value)', dividends: '30%', wealth: 'None', inheritance: 'None' },
     visas: ['Work permit', 'EU Blue Card'],
+    sources: { visas: { 'Work permit': 'https://www.migrationsverket.se/en/you-want-to-apply/work.html', 'EU Blue Card': 'https://www.migrationsverket.se/English/Private-individuals/Working-in-Sweden/Employed/Special-rules-for-certain-occupations-and-citizens-of-certain-countries/EU-Blue-Card.html' } },
     notes: ['ISK accounts replace gains tax with a small annual levy (~0.9% of value).', 'Municipal rate shown for Stockholm.'],
     hdi: 0.959, english: 'Very high', utc: '+1',
   },
@@ -554,6 +567,7 @@ export const europe: Country[] = [
     headline: { topIncome: 0.474, cgt: '37.84%', dividends: '37.84%', wealth: '1.0% – 1.1% above NOK 1.76M', inheritance: 'None' },
     exitTax: 'Exit tax on unrealised share gains above NOK 3M when leaving — no longer lapses after 5 years.',
     visas: ['Skilled worker', 'EEA registration'],
+    sources: { income: 'https://www.skatteetaten.no/en/rates/', visas: { 'Skilled worker': 'https://www.udi.no/en/want-to-apply/work-immigration/skilled-workers/' } },
     notes: ['Wealth tax and exit tax have prompted notable emigration of wealthy Norwegians.'],
     hdi: 0.97, english: 'Very high', utc: '+1',
   },
@@ -572,7 +586,7 @@ export const europe: Country[] = [
     },
     regimes: [
       {
-        id: 'dk-researcher', name: 'Researcher / key employee scheme',
+        id: 'dk-researcher', name: 'Researcher / key employee scheme', url: 'https://info.skat.dk/data.aspx?oid=1801761',
         summary: 'Flat 27% income tax (plus 8% AM contribution) on salary — about 32.8% all-in.',
         duration: '7 years', eligibility: 'Monthly salary ≥ ~DKK 78,600 (2025) or approved researcher.',
         requiresSalary: true, minSalary: 943200, salaryBrackets: [[I, 0.2484]], noDeductions: true,
@@ -585,6 +599,7 @@ export const europe: Country[] = [
     headline: { topIncome: 0.559, cgt: '27% / 42%', dividends: '27% / 42%', wealth: 'None', inheritance: '15% for children' },
     exitTax: 'Exit tax on unrealised share gains above DKK 100k.',
     visas: ['Pay Limit Scheme', 'Fast-track scheme'],
+    sources: { visas: { 'Pay Limit Scheme': 'https://www.nyidanmark.dk/en-GB/You-want-to-apply/Work/Pay-limit-scheme' } },
     notes: ['Mark-to-market taxation applies to many foreign ETFs.'],
     hdi: 0.962, english: 'Very high', utc: '+1',
   },
@@ -601,7 +616,7 @@ export const europe: Country[] = [
     },
     regimes: [
       {
-        id: 'fi-key', name: 'Key employee tax',
+        id: 'fi-key', name: 'Key employee tax', url: 'https://www.vero.fi/en/detailed-guidance/guidance/106825/taxation-of-key-employees4/',
         summary: 'Flat 25% source tax on salary with no social contributions beyond the employee pension.',
         duration: '7 years', eligibility: 'Recruited from abroad; salary ≥ €5,800/month.',
         requiresSalary: true, minSalary: 69600, salaryBrackets: [[I, 0.25]], noDeductions: true,
@@ -676,6 +691,7 @@ export const europe: Country[] = [
     cities: [{ name: 'Tallinn', rent1: 850, rent3: 1600, col: 58 }],
     headline: { topIncome: 0.22, cgt: '22% (deferrable)', dividends: '22%', wealth: 'None', inheritance: 'None' },
     visas: ['Digital Nomad', 'e-Residency (no residence)', 'Startup visa'],
+    sources: { visas: { 'e-Residency (no residence)': 'https://www.e-resident.gov.ee/', 'Startup visa': 'https://startupestonia.ee/startup-visa/' } },
     notes: ['An investment account defers gains tax until money is withdrawn.'],
     hdi: 0.905, english: 'High', utc: '+2',
   },
@@ -727,6 +743,7 @@ export const europe: Country[] = [
     ],
     headline: { topIncome: 0.33, cgt: '12% (0% after 2 yrs)', dividends: '12%', wealth: 'None', inheritance: '0% direct line' },
     visas: ['Digital Nomad (tax-free foreign income)', 'Work permit'],
+    sources: { visas: { 'Digital Nomad (tax-free foreign income)': 'https://mup.gov.hr/aliens-281621/stay-and-work/temporary-stay-of-digital-nomads/286833' } },
     notes: ['Digital nomad permit holders pay no Croatian tax on foreign employment income.'],
     hdi: 0.889, english: 'Very high', utc: '+1',
   },

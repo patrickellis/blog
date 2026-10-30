@@ -14,6 +14,7 @@ export const asiaPacific: Country[] = [
     cities: [{ name: 'Singapore', rent1: 3200, rent3: 6500, col: 88 }],
     headline: { topIncome: 0.24, cgt: '0%', dividends: '0%', wealth: 'None', inheritance: 'None' },
     visas: ['Employment Pass', 'ONE Pass (top talent)', 'Global Investor Programme (S$10M+)'],
+    sources: { income: 'https://www.iras.gov.sg/taxes/individual-income-tax/basics-of-individual-income-tax/tax-residency-and-tax-rates/individual-income-tax-rates', visas: { 'Employment Pass': 'https://www.mom.gov.sg/passes-and-permits/employment-pass', 'ONE Pass (top talent)': 'https://www.mom.gov.sg/passes-and-permits/overseas-networks-expertise-pass', 'Global Investor Programme (S$10M+)': 'https://www.edb.gov.sg/en/how-we-help/global-investor-programme' } },
     notes: ['CPF contributions (20%) apply only to citizens and PRs — not modelled for Employment Pass holders.', 'Car ownership is extremely expensive.'],
     hdi: 0.946, english: 'Native', utc: '+8',
   },
@@ -31,6 +32,7 @@ export const asiaPacific: Country[] = [
     cities: [{ name: 'Hong Kong', rent1: 2600, rent3: 5500, col: 76 }],
     headline: { topIncome: 0.16, cgt: '0%', dividends: '0%', wealth: 'None', inheritance: 'None' },
     visas: ['Top Talent Pass', 'General Employment Policy', 'New Capital Investment Entrant (HK$30M)'],
+    sources: { income: 'https://www.gov.hk/en/residents/taxes/taxfiling/taxrates/salariesrates.htm', visas: { 'Top Talent Pass': 'https://www.immd.gov.hk/eng/services/visas/TTPS.html', 'General Employment Policy': 'https://www.immd.gov.hk/eng/services/visas/GEP.html' } },
     notes: ['Salaries tax is the lower of progressive rates or a 15%/16% standard rate.', 'Territorial: only Hong Kong-source employment income is taxed.'],
     hdi: 0.955, english: 'High', utc: '+8', territorial: true,
   },
@@ -54,7 +56,7 @@ export const asiaPacific: Country[] = [
     },
     regimes: [
       {
-        id: 'jp-npr', name: 'Non-permanent resident',
+        id: 'jp-npr', name: 'Non-permanent resident', url: 'https://www.nta.go.jp/english/taxes/individual/pdf/incometax_2025/04.pdf',
         summary: 'Foreign-source dividends and interest are only taxed if remitted to Japan. Gains on foreign listed securities remain taxable.',
         duration: '5 of first 10 years', eligibility: 'Non-Japanese nationals resident < 5 of the last 10 years.',
         capital: { dividends: FOREIGN_EXEMPT, interest: FOREIGN_EXEMPT },
@@ -68,6 +70,7 @@ export const asiaPacific: Country[] = [
     headline: { topIncome: 0.559, cgt: '20.315%', dividends: '20.315%', wealth: 'None', inheritance: '10% – 55%' },
     exitTax: 'Exit tax on unrealised gains if financial assets ≥ ¥100M after 5 of 10 years residence.',
     visas: ['Highly Skilled Professional', 'Digital Nomad (6 months)', 'Business Manager'],
+    sources: { visas: { 'Highly Skilled Professional': 'https://www.moj.go.jp/isa/applications/resources/newimmiact_3_index.html', 'Business Manager': 'https://www.moj.go.jp/isa/applications/status/businessmanager.html' } },
     notes: ['Worldwide inheritance tax applies after 10 years of residence.', 'Weak yen has made Japan unusually affordable in USD terms.'],
     hdi: 0.925, english: 'Low', utc: '+9',
   },
@@ -117,7 +120,7 @@ export const asiaPacific: Country[] = [
     },
     regimes: [
       {
-        id: 'tw-gold', name: 'Gold Card special professional',
+        id: 'tw-gold', name: 'Gold Card special professional', url: 'https://goldcard.nat.gov.tw/en/',
         summary: '50% of salary above NT$3M exempt, and overseas income excluded from the basic (AMT) tax.',
         duration: '5 years', eligibility: 'Employment Gold Card holders in qualifying fields.',
         requiresSalary: true, salaryExempt: { pct: 0.5, floor: 3000000 }, capital: ALL_CAPITAL_EXEMPT,
@@ -126,6 +129,7 @@ export const asiaPacific: Country[] = [
     cities: [{ name: 'Taipei', rent1: 800, rent3: 1700, col: 60 }],
     headline: { topIncome: 0.4, cgt: '0% domestic / AMT 20% overseas', dividends: 'AMT 20% on large overseas income', wealth: 'None', inheritance: '10% – 20%' },
     visas: ['Employment Gold Card', 'Digital Nomad visa'],
+    sources: { visas: { 'Employment Gold Card': 'https://goldcard.nat.gov.tw/en/' } },
     notes: ['Overseas income only matters once it exceeds NT$1M, and AMT bites above NT$7.5M.'],
     english: 'Moderate', utc: '+8',
   },
@@ -185,6 +189,7 @@ export const asiaPacific: Country[] = [
     ],
     headline: { topIncome: 0.39, cgt: '12.5% (listed, > 1 yr)', dividends: 'As income', wealth: 'None', inheritance: 'None' },
     visas: ['Employment visa', 'OCI card'],
+    sources: { visas: { 'OCI card': 'https://ociservices.gov.in/' } },
     notes: ['New (default) tax regime shown; surcharge on investment gains is capped at 15%.'],
     hdi: 0.685, english: 'High', utc: '+5:30',
   },
@@ -201,13 +206,13 @@ export const asiaPacific: Country[] = [
     },
     regimes: [
       {
-        id: 'th-ltr-pro', name: 'LTR – Highly-skilled professional',
+        id: 'th-ltr-pro', name: 'LTR – Highly-skilled professional', url: 'https://ltr.boi.go.th/',
         summary: 'Flat 17% on Thai employment income and foreign income exempt.',
         duration: '10 years', eligibility: 'Salary ≥ US$80k (or $40k with a master’s/IP) in targeted industries.',
         requiresSalary: true, minSalary: 2600000, salaryBrackets: [[I, 0.17]], noDeductions: true, capital: ALL_CAPITAL_EXEMPT,
       },
       {
-        id: 'th-ltr-wealth', name: 'LTR – Wealthy citizen / pensioner',
+        id: 'th-ltr-wealth', name: 'LTR – Wealthy citizen / pensioner', url: 'https://ltr.boi.go.th/',
         summary: 'Foreign-source income brought into Thailand is exempt.',
         duration: '10 years', eligibility: 'US$1M in assets (Wealthy Global Citizen) or $80k pension income.',
         capital: ALL_CAPITAL_EXEMPT,
@@ -220,6 +225,7 @@ export const asiaPacific: Country[] = [
     ],
     headline: { topIncome: 0.35, cgt: 'As income if remitted', dividends: 'As income if remitted', wealth: 'None', inheritance: '5% – 10% above THB 100M' },
     visas: ['Long-Term Resident (LTR)', 'Destination Thailand Visa (DTV)', 'Thailand Privilege'],
+    sources: { visas: { 'Long-Term Resident (LTR)': 'https://ltr.boi.go.th/', 'Thailand Privilege': 'https://www.thailandprivilege.co.th/home' } },
     notes: ['Since 2024, foreign income remitted to Thailand is taxable (assumed remitted here unless on LTR).'],
     hdi: 0.798, english: 'Low', utc: '+7',
   },
@@ -239,6 +245,7 @@ export const asiaPacific: Country[] = [
     ],
     headline: { topIncome: 0.3, cgt: '0% on listed shares', dividends: '0% foreign (to 2036)', wealth: 'None', inheritance: 'None' },
     visas: ['MM2H', 'DE Rantau Nomad Pass', 'Employment Pass'],
+    sources: { visas: { MM2H: 'https://www.mm2h.gov.my/', 'DE Rantau Nomad Pass': 'https://www.mdec.my/md-programmes/digital-nomad-pass' } },
     notes: ['Foreign-source income received by individuals is exempt until 2036.', 'A 2% tax on local dividends above RM100k applies from 2025.'],
     hdi: 0.819, english: 'High', utc: '+8',
   },
@@ -302,7 +309,7 @@ export const asiaPacific: Country[] = [
     },
     regimes: [
       {
-        id: 'au-temp', name: 'Temporary resident',
+        id: 'au-temp', name: 'Temporary resident', url: 'https://www.ato.gov.au/individuals-and-families/income-deductions-offsets-and-records/income-you-must-declare/foreign-and-worldwide-income/foreign-and-temporary-resident-income',
         summary: 'Foreign investment income and gains on non-Australian assets are exempt.',
         duration: 'While on a temporary visa', eligibility: 'Temporary visa holders (e.g. 482) whose spouse is not an Australian resident.',
         capital: ALL_CAPITAL_EXEMPT,
@@ -317,6 +324,7 @@ export const asiaPacific: Country[] = [
     headline: { topIncome: 0.47, cgt: 'Up to 23.5% (50% discount)', dividends: 'As income (franking credits)', wealth: 'None', inheritance: 'None' },
     exitTax: 'CGT event I1: deemed disposal of non-Australian assets when ceasing residency.',
     visas: ['Skills in Demand (482)', 'Global Talent', 'National Innovation visa'],
+    sources: { income: 'https://www.ato.gov.au/tax-rates-and-codes/tax-rates-australian-residents', gains: 'https://www.ato.gov.au/individuals-and-families/investments-and-assets/capital-gains-tax', visas: { 'Skills in Demand (482)': 'https://immi.homeaffairs.gov.au/visas/getting-a-visa/visa-listing/skills-in-demand-visa-subclass-482', 'National Innovation visa': 'https://immi.homeaffairs.gov.au/visas/getting-a-visa/visa-listing/national-innovation-visa-858' } },
     notes: ['Employers pay 12% superannuation on top of salary (not included).'],
     hdi: 0.946, english: 'Native', utc: '+10',
   },
@@ -332,7 +340,7 @@ export const asiaPacific: Country[] = [
     },
     regimes: [
       {
-        id: 'nz-transitional', name: 'Transitional resident',
+        id: 'nz-transitional', name: 'Transitional resident', url: 'https://www.ird.govt.nz/roles/nz-tax-residents/exemption',
         summary: 'Most foreign-source income (including FIF) exempt for the first four years.',
         duration: '4 years', eligibility: 'New residents, or returning after 10+ years away.',
         capital: ALL_CAPITAL_EXEMPT, noWealthTax: true,
@@ -344,6 +352,7 @@ export const asiaPacific: Country[] = [
     ],
     headline: { topIncome: 0.39, cgt: 'None (property bright-line)', dividends: 'FIF ~1.95% of foreign shares', wealth: 'None', inheritance: 'None' },
     visas: ['Active Investor Plus', 'Skilled Migrant', 'Accredited Employer Work Visa'],
+    sources: { income: 'https://www.ird.govt.nz/income-tax/income-tax-for-individuals/tax-codes-and-tax-rates-for-individuals/tax-rates-for-individuals', visas: { 'Active Investor Plus': 'https://www.immigration.govt.nz/new-zealand-visas/visas/visa/active-investor-plus-visa', 'Skilled Migrant': 'https://www.immigration.govt.nz/new-zealand-visas/visas/visa/skilled-migrant-category-resident-visa', 'Accredited Employer Work Visa': 'https://www.immigration.govt.nz/new-zealand-visas/visas/visa/accredited-employer-work-visa' } },
     notes: ['Foreign shares over NZ$50k are taxed on a deemed 5% return (FIF) at your marginal rate.'],
     hdi: 0.938, english: 'Native', utc: '+12',
   },

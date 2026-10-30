@@ -55,15 +55,11 @@ function place(el: HTMLElement | null, x: number, y: number, bounds: Bounds, dim
   el.style.top = `${Math.max(8, Math.min(y - h / 3, bounds.h - h - 8))}px`
 }
 
-function Floating({ x, y, bounds, children }: { x: number; y: number; bounds: Bounds; children: React.ReactNode }) {
-  const ref = useRef<HTMLDivElement>(null)
-  useLayoutEffect(() => place(ref.current, x, y, bounds))
-  return (
-    <div ref={ref} className="absolute z-20">
-      {children}
-    </div>
-  )
-}
+/** Below this globe width the pinned card is a bottom sheet; above it, it docks to the right edge. */
+const COMPACT_W = 640
+const DOCK_W = 340
+const DOCK_GAP = 12
+const EASE_OUT = 'cubic-bezier(0.22, 1, 0.36, 1)'
 
 const reducedMotion = typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches
 
@@ -80,28 +76,53 @@ export function GlobePanel() {
   const { byId, byCountry, home } = useRows()
 
   const box = useRef<HTMLDivElement>(null)
+  const header = useRef<HTMLDivElement>(null)
   const [size, setSize] = useState({ w: 0, h: 0 })
+  const [dockTop, setDockTop] = useState(DOCK_GAP)
   const [hovered, setHovered] = useState<string | null>(null)
   const [hoveredName, setHoveredName] = useState<string | null>(null)
-  const [pinned, setPinned] = useState<{ id: string; x: number; y: number } | null>(null)
+  const [pinned, setPinned] = useState<string | null>(null)
   const [rotate, setRotate] = useState(!reducedMotion)
   const mouse = useRef({ x: 0, y: 0 })
   const hoverEl = useRef<HTMLDivElement>(null)
+  const dockEl = useRef<HTMLDivElement>(null)
+  /** Where the hover preview sat when it was clicked, so the docked card can fly out from there. */
+  const pinFrom = useRef<{ x: number; y: number; h: number } | null>(null)
+  const sizeRef = useRef(size)
+  sizeRef.current = size
   const raf = useRef(0)
 
   useLayoutEffect(() => {
     const el = box.current
-    if (!el) return
-    const ro = new ResizeObserver(([e]) => setSize({ w: Math.round(e.contentRect.width), h: Math.round(e.contentRect.height) }))
+    const hd = header.current
+    if (!el || !hd) return
+    const ro = new ResizeObserver(() => {
+      const r = el.getBoundingClientRect()
+      setSize({ w: Math.round(r.width), h: Math.round(r.height) })
+      // On wider screens the header floats over the globe; the docked card starts just below its controls.
+      setDockTop(Math.max(DOCK_GAP, Math.round(hd.getBoundingClientRect().bottom - r.top - 8)))
+    })
     ro.observe(el)
+    ro.observe(hd)
     return () => ro.disconnect()
   }, [])
 
+  const unpin = useCallback(() => {
+    const el = dockEl.current
+    if (!el || reducedMotion) return setPinned(null)
+    el.getAnimations().forEach((a) => a.cancel())
+    const id = el.dataset.id
+    el.animate([{ opacity: 1, transform: 'none' }, { opacity: 0, transform: 'translateX(24px)' }], { duration: 180, easing: 'ease-in', fill: 'forwards' }).finished.then(
+      () => setPinned((p) => (p === id ? null : p)),
+      () => {},
+    )
+  }, [])
+
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setPinned(null)
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && unpin()
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [])
+  }, [unpin])
 
   // In highlight mode only the quantized regional bands depend on results, so typing in the profile rarely re-styles the globe:
   // the bands are serialised to a string and the Map is only rebuilt when that string changes.
@@ -169,29 +190,63 @@ export function GlobePanel() {
     setHovered(id)
     setHoveredName(name)
   }, [])
-  const onPick = useCallback((id: string, x: number, y: number) => setPinned({ id, x, y }), [])
-  const onBackground = useCallback(() => setPinned(null), [])
+  const onPick = useCallback((id: string, x: number) => {
+    const el = hoverEl.current
+    pinFrom.current = el ? { x: el.offsetLeft, y: el.offsetTop, h: el.offsetHeight } : null
+    // Bring the country out from under the docked card.
+    const { w } = sizeRef.current
+    if (w >= COMPACT_W && x > w - DOCK_W - DOCK_GAP * 2) focusOn(id)
+    setPinned(id)
+  }, [focusOn])
+
+  const compact = size.w < COMPACT_W
+  const pinnedRow = pinned ? byId.get(pinned) : undefined
+  const docked = !!pinnedRow && !compact
+  // While docked, hover previews keep to the free area left of the card.
+  const bounds = useMemo(() => (docked ? { w: size.w - DOCK_W - DOCK_GAP, h: size.h } : size), [docked, size])
 
   const onMove = (e: React.PointerEvent) => {
     const rect = box.current!.getBoundingClientRect()
     mouse.current = { x: e.clientX - rect.left, y: e.clientY - rect.top }
     if (!raf.current) raf.current = requestAnimationFrame(() => {
       raf.current = 0
-      place(hoverEl.current, mouse.current.x, mouse.current.y, size, hoverDim.current)
+      place(hoverEl.current, mouse.current.x, mouse.current.y, bounds, hoverDim.current)
     })
   }
 
-  const compact = size.w < 640
-
-  const hoverRow = hovered && hovered !== pinned?.id ? byId.get(hovered) : undefined
+  const hoverRow = hovered && hovered !== pinned ? byId.get(hovered) : undefined
   const hoverDim = useRef({ w: 0, h: 0 })
   useLayoutEffect(() => {
     const el = hoverEl.current
     if (!el) return
     hoverDim.current = { w: el.offsetWidth, h: el.offsetHeight }
-    place(el, mouse.current.x, mouse.current.y, size, hoverDim.current)
-  }, [hoverRow, hoveredName, size])
-  const pinnedRow = pinned ? byId.get(pinned.id) : undefined
+    place(el, mouse.current.x, mouse.current.y, bounds, hoverDim.current)
+  }, [hoverRow, hoveredName, bounds])
+
+  // First pin: the card flies from the hover preview into the dock, growing downwards to full height (clip-path, so
+  // text never distorts). Pinning another destination while docked just refreshes the card in place.
+  const lastPinned = useRef<string | null>(null)
+  useLayoutEffect(() => {
+    const el = dockEl.current
+    const was = lastPinned.current
+    lastPinned.current = docked ? pinned : null
+    if (!el || !docked || reducedMotion) return
+    el.getAnimations().forEach((a) => a.cancel())
+    const from = pinFrom.current
+    pinFrom.current = null
+    if (was) el.animate([{ opacity: 0.5, transform: 'translateY(6px)' }, { opacity: 1, transform: 'none' }], { duration: 220, easing: EASE_OUT })
+    else if (from) {
+      const clip = Math.max(0, el.offsetHeight - from.h)
+      el.animate(
+        [
+          { transform: `translate(${from.x - el.offsetLeft}px, ${from.y - el.offsetTop}px)`, clipPath: `inset(0 0 ${clip}px 0 round 16px)` },
+          { transform: 'none', clipPath: 'inset(0 0 0 0 round 16px)' },
+        ],
+        { duration: 460, easing: EASE_OUT },
+      )
+    } else el.animate([{ opacity: 0, transform: 'translateX(24px)' }, { opacity: 1, transform: 'none' }], { duration: 260, easing: EASE_OUT })
+  }, [pinned, docked])
+
   const legend = COLOR_OPTIONS.find((o) => o.value === colorBy)!
 
   return (
@@ -199,7 +254,7 @@ export function GlobePanel() {
       className="panel relative flex h-[560px] flex-col overflow-hidden sm:h-[640px] lg:sticky lg:top-20 lg:h-[calc(100vh-6rem)] lg:max-h-[880px] lg:min-h-[620px]"
       aria-label="Interactive globe"
     >
-      <div className="pointer-events-none z-10 flex flex-wrap items-start justify-between gap-3 p-4 sm:absolute sm:inset-x-0 sm:top-0 sm:p-5">
+      <div ref={header} className="pointer-events-none z-10 flex flex-wrap items-start justify-between gap-3 p-4 sm:absolute sm:inset-x-0 sm:top-0 sm:p-5">
         <div className="pointer-events-auto">
           <h2 className="text-lg font-semibold tracking-tight text-white">Explore {DESTINATIONS.length} destinations</h2>
           <p className="mt-0.5 flex items-center gap-1.5 text-sm text-slate-400">
@@ -214,7 +269,8 @@ export function GlobePanel() {
             align="right"
             onSelect={(id) => {
               focusOn(id)
-              setPinned({ id, x: size.w / 2, y: size.h / 2 - 120 })
+              pinFrom.current = null
+              setPinned(id)
             }}
             trigger={
               <span className="btn-outline bg-ink-900/70">
@@ -252,6 +308,7 @@ export function GlobePanel() {
               styles={styles}
               hovered={hovered}
               hoveredName={hoveredName}
+              selected={pinnedRow ? pinned : null}
               markers={markers}
               arcs={arcs}
               labels={labels}
@@ -259,7 +316,7 @@ export function GlobePanel() {
               focus={focusPov}
               onHover={onHover}
               onPick={onPick}
-              onBackground={onBackground}
+              onBackground={unpin}
             />
           </Suspense>
         )}
@@ -279,18 +336,27 @@ export function GlobePanel() {
         {pinnedRow &&
           (compact ? (
             <div className="pointer-events-none absolute inset-3 z-20 flex items-end justify-center">
-              <div className="scrollbar-thin pointer-events-auto max-h-full overflow-y-auto rounded-2xl">
-                <CountryPreview row={pinnedRow} pinned onClose={() => setPinned(null)} />
+              <div className="scrollbar-thin pointer-events-auto max-h-full cursor-auto overflow-y-auto rounded-2xl">
+                <CountryPreview row={pinnedRow} pinned onClose={unpin} />
               </div>
             </div>
           ) : (
-            <Floating x={pinned!.x} y={pinned!.y} bounds={size}>
-              <CountryPreview row={pinnedRow} pinned onClose={() => setPinned(null)} />
-            </Floating>
+            <div
+              ref={dockEl}
+              data-id={pinned!}
+              className="absolute z-20 cursor-auto"
+              style={{ top: dockTop, right: DOCK_GAP, bottom: DOCK_GAP, width: DOCK_W }}
+              onPointerEnter={() => onHover(null, null)}
+            >
+              <CountryPreview row={pinnedRow} pinned docked onClose={unpin} />
+            </div>
           ))}
       </div>
 
-      <div className={cx('pointer-events-none absolute bottom-0 left-0 z-10 p-3 sm:p-5', pinned && compact && 'hidden')}>
+      <div
+        className={cx('pointer-events-none absolute bottom-0 left-0 z-10 p-3 sm:p-5', pinned && compact && 'hidden')}
+        style={docked ? { maxWidth: size.w - DOCK_W - DOCK_GAP } : undefined}
+      >
         <div className="pointer-events-auto rounded-xl border border-white/10 bg-ink-900/80 px-3 py-2 text-[11px] backdrop-blur sm:py-2.5 sm:text-xs">
           <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5">
             <span className="flex items-center gap-1.5">

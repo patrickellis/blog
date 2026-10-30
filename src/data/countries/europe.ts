@@ -1,5 +1,7 @@
 import type { Country } from '../../types'
 import { ALL_CAPITAL_EXEMPT, EXEMPT, FOREIGN_EXEMPT, I, flat, ord, pooled, stacked } from '../helpers'
+import { SPAIN_REGIONS } from './subdivisions/spain-regions'
+import { SWISS_CANTONS } from './subdivisions/swiss-cantons'
 
 const SPAIN_STATE_WEALTH: [number, number][] = [
   [167129, 0.002], [334253, 0.003], [668500, 0.005], [1337000, 0.009], [2674000, 0.013], [5348000, 0.017], [10696000, 0.021], [I, 0.035],
@@ -255,26 +257,14 @@ export const europe: Country[] = [
         requiresNoSalary: true, replacesAll: true, fixedAnnualTax: 150000,
       },
     ],
-    cities: [
-      {
-        name: 'Zurich', rent1: 3100, rent3: 5700, col: 115,
-        local: [{ name: 'Cantonal & communal tax', base: 'ordinary', allowance: 4000, brackets: [[7000, 0], [20000, 0.04], [50000, 0.09], [100000, 0.15], [150000, 0.2], [250000, 0.24], [I, 0.28]] }],
-        wealth: { name: 'Cantonal wealth tax', allowance: 80000, brackets: [[500000, 0.0015], [1000000, 0.003], [3000000, 0.005], [I, 0.0066]] },
-      },
-      {
-        name: 'Zug', rent1: 2900, rent3: 5800, col: 110,
-        local: [{ name: 'Cantonal & communal tax', base: 'ordinary', allowance: 4000, brackets: [[15000, 0], [50000, 0.03], [100000, 0.06], [200000, 0.085], [I, 0.1]] }],
-        wealth: { name: 'Cantonal wealth tax', allowance: 100000, brackets: [[1000000, 0.0008], [I, 0.0018]] },
-      },
-      {
-        name: 'Geneva', rent1: 3000, rent3: 5600, col: 112,
-        local: [{ name: 'Cantonal & communal tax', base: 'ordinary', allowance: 4000, brackets: [[18000, 0], [30000, 0.08], [50000, 0.14], [100000, 0.19], [150000, 0.24], [300000, 0.28], [I, 0.32]] }],
-        wealth: { name: 'Cantonal wealth tax', allowance: 87000, brackets: [[500000, 0.004], [1000000, 0.006], [3000000, 0.008], [I, 0.01]] },
-      },
-    ],
+    cities: [],
+    subdivisionKind: 'canton',
+    subdivisions: SWISS_CANTONS,
+    defaultSubdivision: 'ZH',
+    focusAltitude: 0.45,
     headline: { topIncome: 0.41, cgt: '0% (private investors)', dividends: 'Taxed as income', wealth: '0.1% – 1% (cantonal)', inheritance: '0% for children in most cantons' },
     visas: ['B permit (employment)', 'Lump-sum residence'],
-    notes: ['Tax varies enormously by canton – Zug and Schwyz are among the lowest in Europe.', 'Occupational pension (BVG) contributions of ~5–9% not modelled.'],
+    notes: ['Tax varies enormously by canton and municipality – Zug and Schwyz are among the lowest in Europe.', 'Cantonal figures are for the main city shown; church tax and occupational pension (BVG) contributions of ~5–9% are not modelled.'],
     hdi: 0.97, english: 'High', utc: '+1',
   },
   {
@@ -343,6 +333,7 @@ export const europe: Country[] = [
       dividends: pooled(),
       interest: pooled(),
       wealth: { name: 'Wealth tax', allowance: 700000, brackets: SPAIN_STATE_WEALTH },
+      wealthFloor: SPAIN_SOLIDARITY,
     },
     regimes: [
       {
@@ -353,32 +344,15 @@ export const europe: Country[] = [
         capital: ALL_CAPITAL_EXEMPT,
       },
     ],
-    cities: [
-      {
-        name: 'Madrid', rent1: 1600, rent3: 2900, col: 58,
-        local: [{ name: 'Regional income tax (Madrid)', base: 'ordinary', allowance: 7550, brackets: [[13362, 0.085], [19004, 0.107], [35425, 0.128], [57320, 0.174], [I, 0.205]] }],
-        wealth: SPAIN_SOLIDARITY,
-      },
-      {
-        name: 'Barcelona', rent1: 1500, rent3: 2800, col: 60,
-        local: [{ name: 'Regional income tax (Catalonia)', base: 'ordinary', allowance: 7550, brackets: [[12450, 0.105], [17707, 0.12], [21000, 0.14], [33007, 0.15], [53407, 0.188], [90000, 0.215], [120000, 0.235], [175000, 0.245], [I, 0.255]] }],
-        wealth: { name: 'Wealth tax (Catalonia)', allowance: 500000, brackets: [[167129, 0.0021], [334253, 0.00315], [668500, 0.00525], [1337000, 0.00945], [2674000, 0.01365], [5348000, 0.01785], [10696000, 0.02205], [20000000, 0.0275], [I, 0.0348]] },
-      },
-      {
-        name: 'Valencia', rent1: 1150, rent3: 1950, col: 52,
-        local: [{ name: 'Regional income tax (Valencia)', base: 'ordinary', allowance: 7550, brackets: [[12000, 0.09], [22000, 0.12], [32000, 0.15], [42000, 0.175], [52000, 0.2], [62000, 0.225], [72000, 0.25], [100000, 0.265], [150000, 0.275], [200000, 0.285], [I, 0.295]] }],
-        wealth: { name: 'Wealth tax (Valencia)', allowance: 1000000, brackets: SPAIN_STATE_WEALTH },
-      },
-      {
-        name: 'Málaga', rent1: 1300, rent3: 2300, col: 55,
-        local: [{ name: 'Regional income tax (Andalusia)', base: 'ordinary', allowance: 7550, brackets: [[13000, 0.095], [21100, 0.12], [35200, 0.15], [60000, 0.185], [I, 0.225]] }],
-        wealth: SPAIN_SOLIDARITY,
-      },
-    ],
+    cities: [],
+    subdivisionKind: 'region',
+    subdivisions: SPAIN_REGIONS,
+    defaultSubdivision: 'MD',
+    focusAltitude: 0.9,
     headline: { topIncome: 0.47, cgt: '19% – 30%', dividends: '19% – 30%', wealth: '0.2% – 3.5% above €700k (regional)', inheritance: 'Regional; ~0% for children in Madrid/Andalusia' },
     exitTax: 'Exit tax on shares worth > €4M (or > €1M with a 25% stake) after 10 of 15 years residence.',
     visas: ['Digital Nomad', 'Non-lucrative residence', 'Highly Qualified Professional'],
-    notes: ['Madrid and Andalusia fully relieve regional wealth tax; the state solidarity tax still applies above €3M.', 'The golden visa programme closed in April 2025.'],
+    notes: ['Half of income tax and most of wealth tax are set by the autonomous community. Where regional wealth tax is relieved, the state solidarity tax still applies above €3M.', 'The golden visa programme closed in April 2025.', 'Ceuta and Melilla (60% income-tax deduction) are not modelled.'],
     hdi: 0.918, english: 'Moderate', utc: '+1',
   },
   {

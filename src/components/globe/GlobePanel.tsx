@@ -1,8 +1,9 @@
 import { Loader2, MousePointerClick, Pause, Play, Search } from 'lucide-react'
 import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
-import { BY_ISO, COUNTRIES } from '../../data/countries'
+import { BY_ID, DESTINATIONS } from '../../data/countries'
 import { DIVERGING_GRADIENT, HOME_COLOR, SEQUENTIAL_GRADIENT, TARGET_COLOR, diverging, sequential } from '../../lib/colors'
 import { cx, money } from '../../lib/format'
+import { useShallow } from 'zustand/react/shallow'
 import { useRows, type Row } from '../../state/results'
 import { useApp, type ColorBy } from '../../state/store'
 import { CountryPicker } from '../CountryPicker'
@@ -20,36 +21,45 @@ const COLOR_OPTIONS: { value: ColorBy; label: string }[] = [
   { value: 'rent', label: 'Rent' },
 ]
 
+const HEAT_ALPHA = 0.82
+
 function metric(row: Row, colorBy: ColorBy, home: Row): { color: string } | null {
   switch (colorBy) {
     case 'net':
-      return { color: diverging(row.delta.netPct / 0.4, 0.85) }
+      return { color: diverging(row.delta.netPct / 0.4, HEAT_ALPHA) }
     case 'afterHousing':
-      return { color: diverging(row.delta.afterHousing / Math.max(1, Math.abs(home.afterHousing)) / 0.4, 0.85) }
+      return { color: diverging(row.delta.afterHousing / Math.max(1, Math.abs(home.afterHousing)) / 0.4, HEAT_ALPHA) }
     case 'effective':
-      return { color: sequential(row.res.effectiveRate / 0.5, 0.85) }
+      return { color: sequential(row.res.effectiveRate / 0.5, HEAT_ALPHA) }
     case 'investment':
-      return { color: sequential(row.res.investmentRate / 0.35, 0.85) }
+      return { color: sequential(row.res.investmentRate / 0.35, HEAT_ALPHA) }
     case 'rent':
-      return { color: sequential(Math.log(row.city.rent1 / 400) / Math.log(4500 / 400), 0.85) }
+      return { color: sequential(Math.log(row.city.rent1 / 400) / Math.log(4500 / 400), HEAT_ALPHA) }
     default:
       return null
   }
 }
 
-/** Positions children next to (x, y), flipping/clamping using the element's measured size. */
-function Floating({ x, y, bounds, className, children }: { x: number; y: number; bounds: { w: number; h: number }; className?: string; children: React.ReactNode }) {
-  const ref = useRef<HTMLDivElement>(null)
-  const [dim, setDim] = useState({ w: 340, h: 460 })
-  useLayoutEffect(() => {
-    const el = ref.current
-    if (el && (el.offsetWidth !== dim.w || el.offsetHeight !== dim.h)) setDim({ w: el.offsetWidth, h: el.offsetHeight })
-  })
+type Bounds = { w: number; h: number }
+
+/**
+ * Place `el` beside (x, y), flipping/clamping with its size. Writes styles directly (no React render).
+ * Pass a cached `dim` on hot paths to avoid forcing a layout read on every pointer move.
+ */
+function place(el: HTMLElement | null, x: number, y: number, bounds: Bounds, dim?: { w: number; h: number }) {
+  if (!el) return
+  const w = dim?.w ?? el.offsetWidth
+  const h = dim?.h ?? el.offsetHeight
   const gap = 18
-  const left = Math.max(8, Math.min(x + gap + dim.w > bounds.w ? x - dim.w - gap : x + gap, bounds.w - dim.w - 8))
-  const top = Math.max(8, Math.min(y - dim.h / 3, bounds.h - dim.h - 8))
+  el.style.left = `${Math.max(8, Math.min(x + gap + w > bounds.w ? x - w - gap : x + gap, bounds.w - w - 8))}px`
+  el.style.top = `${Math.max(8, Math.min(y - h / 3, bounds.h - h - 8))}px`
+}
+
+function Floating({ x, y, bounds, children }: { x: number; y: number; bounds: Bounds; children: React.ReactNode }) {
+  const ref = useRef<HTMLDivElement>(null)
+  useLayoutEffect(() => place(ref.current, x, y, bounds))
   return (
-    <div ref={ref} className={cx('absolute z-20', className)} style={{ left, top }}>
+    <div ref={ref} className="absolute z-20">
       {children}
     </div>
   )
@@ -57,18 +67,26 @@ function Floating({ x, y, bounds, className, children }: { x: number; y: number;
 
 const reducedMotion = typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches
 
+/** Highlight mode shades each state/province/canton by its total tax relative to the rest of its country, in this many bands. */
+const REGION_BANDS = 5
+const regionColor = (band: number) => sequential(band / (REGION_BANDS - 1), 0.52)
+const SPLIT_COUNT = DESTINATIONS.filter((d) => d.subdivision).length
+
 export function GlobePanel() {
-  const { homeIso, targets, colorBy, focus, currency, profile } = useApp()
+  const { homeId, targets, colorBy, focus, currency, capital } = useApp(
+    useShallow((s) => ({ homeId: s.homeId, targets: s.targets, colorBy: s.colorBy, focus: s.focus, currency: s.currency, capital: s.profile.gains + s.profile.dividends + s.profile.interest })),
+  )
   const { setColorBy, focusOn } = useApp.getState()
-  const { byIso, home } = useRows()
+  const { byId, byCountry, home } = useRows()
 
   const box = useRef<HTMLDivElement>(null)
   const [size, setSize] = useState({ w: 0, h: 0 })
   const [hovered, setHovered] = useState<string | null>(null)
   const [hoveredName, setHoveredName] = useState<string | null>(null)
-  const [pinned, setPinned] = useState<{ iso: string; x: number; y: number } | null>(null)
-  const [mouse, setMouse] = useState({ x: 0, y: 0 })
+  const [pinned, setPinned] = useState<{ id: string; x: number; y: number } | null>(null)
   const [rotate, setRotate] = useState(!reducedMotion)
+  const mouse = useRef({ x: 0, y: 0 })
+  const hoverEl = useRef<HTMLDivElement>(null)
   const raf = useRef(0)
 
   useLayoutEffect(() => {
@@ -85,69 +103,95 @@ export function GlobePanel() {
     return () => window.removeEventListener('keydown', onKey)
   }, [])
 
+  // In highlight mode only the quantized regional bands depend on results, so typing in the profile rarely re-styles the globe:
+  // the bands are serialised to a string and the Map is only rebuilt when that string changes.
+  const bandKey = useMemo(() => {
+    if (colorBy !== 'highlight') return ''
+    const parts: string[] = []
+    for (const list of byCountry.values()) {
+      const taxes = list.map((r) => r.tax)
+      const min = Math.min(...taxes)
+      const span = Math.max(...taxes) - min
+      for (const r of list) parts.push(`${r.dest.id}:${span > 0 ? Math.round(((r.tax - min) / span) * (REGION_BANDS - 1)) : 0}`)
+    }
+    return parts.join(',')
+  }, [colorBy, byCountry])
+  const regionBands = useMemo(() => new Map(bandKey ? bandKey.split(',').map((p) => [p.split(':')[0], Number(p.split(':')[1])] as const) : []), [bandKey])
+
+  const heatRows = colorBy === 'highlight' ? null : byId
+  const heatHome = colorBy === 'highlight' ? null : home
   const styles = useMemo(() => {
-    const m = new Map<number, PolyStyle>()
-    for (const c of COUNTRIES) {
-      const row = byIso.get(c.iso2)!
-      const isHome = c.iso2 === homeIso
-      const isTarget = targets.includes(c.iso2)
-      const heat = metric(row, colorBy, home)
-      if (isHome) m.set(c.num, { cap: HOME_COLOR, side: 'rgba(245,158,11,0.5)', stroke: 'rgba(253,230,138,0.9)', alt: 0.04 })
-      else if (heat) m.set(c.num, { cap: heat.color, side: 'rgba(15,23,42,0.5)', stroke: isTarget ? TARGET_COLOR : 'rgba(226,232,240,0.35)', alt: isTarget ? 0.035 : 0.012 })
-      else if (isTarget) m.set(c.num, { cap: TARGET_COLOR, side: 'rgba(34,211,238,0.45)', stroke: 'rgba(165,243,252,0.9)', alt: 0.035 })
-      else m.set(c.num, { cap: 'rgba(45,212,191,0.32)', side: 'rgba(45,212,191,0.12)', stroke: 'rgba(94,234,212,0.55)', alt: 0.012 })
+    const m = new Map<string, PolyStyle>()
+    for (const d of DESTINATIONS) {
+      const isHome = d.id === homeId
+      const isTarget = targets.includes(d.id)
+      const heat = heatRows && heatHome ? metric(heatRows.get(d.id)!, colorBy, heatHome) : null
+      if (isHome) m.set(d.id, { cap: HOME_COLOR, side: 'rgba(245,158,11,0.5)', stroke: 'rgba(253,230,138,0.9)', alt: 0.04 })
+      else if (heat) m.set(d.id, { cap: heat.color, side: 'rgba(15,23,42,0.5)', stroke: isTarget ? TARGET_COLOR : 'rgba(226,232,240,0.35)', alt: isTarget ? 0.035 : 0.012 })
+      else if (isTarget) m.set(d.id, { cap: TARGET_COLOR, side: 'rgba(34,211,238,0.45)', stroke: 'rgba(165,243,252,0.9)', alt: 0.035 })
+      else if (regionBands.has(d.id)) m.set(d.id, { cap: regionColor(regionBands.get(d.id)!), side: 'rgba(15,23,42,0.45)', stroke: 'rgba(241,245,249,0.55)', alt: 0.012 })
+      else m.set(d.id, { cap: 'rgba(45,212,191,0.32)', side: 'rgba(45,212,191,0.12)', stroke: 'rgba(94,234,212,0.55)', alt: 0.012 })
     }
     return m
-  }, [byIso, home, homeIso, targets, colorBy])
+  }, [heatRows, heatHome, homeId, targets, colorBy, regionBands])
 
   const markers = useMemo<Marker[]>(
     () =>
-      COUNTRIES.filter((c) => c.micro).map((c) => ({
-        iso: c.iso2,
-        lat: c.lat,
-        lng: c.lng,
-        color: c.iso2 === homeIso ? HOME_COLOR : targets.includes(c.iso2) ? TARGET_COLOR : (styles.get(c.num)?.cap ?? '#2dd4bf'),
+      DESTINATIONS.filter((d) => d.micro).map((d) => ({
+        id: d.id,
+        lat: d.lat,
+        lng: d.lng,
+        color: d.id === homeId ? HOME_COLOR : targets.includes(d.id) ? TARGET_COLOR : (styles.get(d.id)?.cap ?? '#2dd4bf'),
       })),
-    [homeIso, targets, styles],
+    [homeId, targets, styles],
   )
 
-  const homeC = BY_ISO.get(homeIso)!
+  const homeD = BY_ID.get(homeId)!
   const arcs = useMemo<Arc[]>(
-    () => targets.map((t) => BY_ISO.get(t)!).map((t) => ({ startLat: homeC.lat, startLng: homeC.lng, endLat: t.lat, endLng: t.lng })),
-    [targets, homeC],
+    () => targets.map((t) => BY_ID.get(t)!).map((t) => ({ startLat: homeD.lat, startLng: homeD.lng, endLat: t.lat, endLng: t.lng })),
+    [targets, homeD],
   )
   const labels = useMemo<Label[]>(
     () => [
-      { lat: homeC.lat, lng: homeC.lng, text: homeC.name, color: '#fde68a' },
-      ...targets.map((t) => BY_ISO.get(t)!).map((c) => ({ lat: c.lat, lng: c.lng, text: c.name, color: '#a5f3fc' })),
+      { lat: homeD.lat, lng: homeD.lng, text: homeD.name, color: '#fde68a' },
+      ...targets.map((t) => BY_ID.get(t)!).map((d) => ({ lat: d.lat, lng: d.lng, text: d.name, color: '#a5f3fc' })),
     ],
-    [targets, homeC],
+    [targets, homeD],
   )
 
   const focusPov = useMemo(() => {
-    const c = BY_ISO.get(focus?.iso ?? homeIso)!
-    return { lat: c.lat - 10, lng: c.lng, n: focus?.n ?? 0 }
-  }, [focus, homeIso])
+    const d = BY_ID.get(focus?.id ?? homeId)!
+    const altitude = d.subdivision ? (d.focusAltitude ?? 1.4) : 2
+    return { lat: d.lat - 5 * altitude, lng: d.lng, altitude, n: focus?.n ?? 0 }
+  }, [focus, homeId])
 
-  const onHover = useCallback((iso: string | null, name: string | null) => {
-    setHovered(iso)
+  const onHover = useCallback((id: string | null, name: string | null) => {
+    setHovered(id)
     setHoveredName(name)
   }, [])
-  const onPick = useCallback((iso: string, x: number, y: number) => setPinned({ iso, x, y }), [])
+  const onPick = useCallback((id: string, x: number, y: number) => setPinned({ id, x, y }), [])
   const onBackground = useCallback(() => setPinned(null), [])
 
   const onMove = (e: React.PointerEvent) => {
     const rect = box.current!.getBoundingClientRect()
-    const x = e.clientX - rect.left
-    const y = e.clientY - rect.top
-    cancelAnimationFrame(raf.current)
-    raf.current = requestAnimationFrame(() => setMouse({ x, y }))
+    mouse.current = { x: e.clientX - rect.left, y: e.clientY - rect.top }
+    if (!raf.current) raf.current = requestAnimationFrame(() => {
+      raf.current = 0
+      place(hoverEl.current, mouse.current.x, mouse.current.y, size, hoverDim.current)
+    })
   }
 
   const compact = size.w < 640
 
-  const hoverRow = hovered && hovered !== pinned?.iso ? byIso.get(hovered) : undefined
-  const pinnedRow = pinned ? byIso.get(pinned.iso) : undefined
+  const hoverRow = hovered && hovered !== pinned?.id ? byId.get(hovered) : undefined
+  const hoverDim = useRef({ w: 0, h: 0 })
+  useLayoutEffect(() => {
+    const el = hoverEl.current
+    if (!el) return
+    hoverDim.current = { w: el.offsetWidth, h: el.offsetHeight }
+    place(el, mouse.current.x, mouse.current.y, size, hoverDim.current)
+  }, [hoverRow, hoveredName, size])
+  const pinnedRow = pinned ? byId.get(pinned.id) : undefined
   const legend = COLOR_OPTIONS.find((o) => o.value === colorBy)!
 
   return (
@@ -157,20 +201,20 @@ export function GlobePanel() {
     >
       <div className="pointer-events-none z-10 flex flex-wrap items-start justify-between gap-3 p-4 sm:absolute sm:inset-x-0 sm:top-0 sm:p-5">
         <div className="pointer-events-auto">
-          <h2 className="text-lg font-semibold tracking-tight text-white">Explore {COUNTRIES.length} destinations</h2>
+          <h2 className="text-lg font-semibold tracking-tight text-white">Explore {DESTINATIONS.length} destinations</h2>
           <p className="mt-0.5 flex items-center gap-1.5 text-sm text-slate-400">
             <MousePointerClick className="h-4 w-4" />
-            <span className="pointer-coarse:hidden">Hover a country to preview, click to pin and compare</span>
-            <span className="hidden pointer-coarse:inline">Tap a highlighted country to see details</span>
+            <span className="pointer-coarse:hidden">Hover a country or region to preview, click to pin and compare</span>
+            <span className="hidden pointer-coarse:inline">Tap a highlighted country or region to see details</span>
           </p>
         </div>
         <div className="pointer-events-auto flex items-center gap-2">
           <CountryPicker
             label="Find a destination"
             align="right"
-            onSelect={(iso) => {
-              focusOn(iso)
-              setPinned({ iso, x: size.w / 2, y: size.h / 2 - 120 })
+            onSelect={(id) => {
+              focusOn(id)
+              setPinned({ id, x: size.w / 2, y: size.h / 2 - 120 })
             }}
             trigger={
               <span className="btn-outline bg-ink-900/70">
@@ -220,15 +264,16 @@ export function GlobePanel() {
           </Suspense>
         )}
 
-        {hoverRow && !compact && (
-          <Floating x={mouse.x} y={mouse.y} bounds={size} className="pointer-events-none">
-            <CountryPreview row={hoverRow} />
-          </Floating>
-        )}
-        {hoveredName && !compact && (
-          <div className="pointer-events-none absolute z-20 rounded-lg border border-white/10 bg-ink-900/95 px-3 py-2 text-xs shadow-xl" style={{ left: mouse.x + 16, top: mouse.y + 16 }}>
-            <div className="font-medium text-slate-200">{hoveredName}</div>
-            <div className="text-slate-500">Not yet covered</div>
+        {(hoverRow || hoveredName) && !compact && (
+          <div ref={hoverEl} className="pointer-events-none absolute z-20 will-change-[left,top]">
+            {hoverRow ? (
+              <CountryPreview row={hoverRow} />
+            ) : (
+              <div className="rounded-lg border border-white/10 bg-ink-900/95 px-3 py-2 text-xs shadow-xl">
+                <div className="font-medium text-slate-200">{hoveredName}</div>
+                <div className="text-slate-500">Not yet covered</div>
+              </div>
+            )}
           </div>
         )}
         {pinnedRow &&
@@ -263,6 +308,21 @@ export function GlobePanel() {
               <span className="h-2.5 w-2.5 rounded-sm bg-slate-500/30" /> Not covered
             </span>
           </div>
+          {colorBy === 'highlight' && (
+            <div className="mt-2 w-64" title={`US states, Canadian provinces, Swiss cantons and Spanish regions set their own taxes — each of the ${SPLIT_COUNT} is a separate destination, shaded by your total tax there compared with the rest of its country.`}>
+              <div className="mb-1 text-slate-400">States, provinces &amp; cantons: tax vs rest of country</div>
+              <div className="flex h-1.5 overflow-hidden rounded-full">
+                {Array.from({ length: REGION_BANDS }, (_, i) => (
+                  <span key={i} className="flex-1" style={{ background: regionColor(i) }} />
+                ))}
+              </div>
+              <div className="mt-1 flex justify-between text-[10px] text-slate-500">
+                <span>lowest</span>
+                <span>for your income</span>
+                <span>highest</span>
+              </div>
+            </div>
+          )}
           {colorBy !== 'highlight' && (
             <div className="mt-2 w-60">
               <div className="mb-1 text-slate-400">{legend.label}</div>
@@ -271,7 +331,7 @@ export function GlobePanel() {
                 {colorBy === 'net' || colorBy === 'afterHousing' ? (
                   <>
                     <span>−40%</span>
-                    <span>same as {home.country.name}</span>
+                    <span>same as {home.dest.name}</span>
                     <span>+40%</span>
                   </>
                 ) : colorBy === 'rent' ? (
@@ -283,7 +343,7 @@ export function GlobePanel() {
                 ) : (
                   <>
                     <span>0%</span>
-                    <span>{colorBy === 'investment' && profile.gains + profile.dividends + profile.interest === 0 ? 'add investment income' : ''}</span>
+                    <span>{colorBy === 'investment' && capital === 0 ? 'add investment income' : ''}</span>
                     <span>{colorBy === 'effective' ? '50%' : '35%'}+</span>
                   </>
                 )}

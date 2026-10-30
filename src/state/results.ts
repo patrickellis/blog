@@ -1,13 +1,14 @@
-import { useMemo } from 'react'
-import { BY_ISO, COUNTRIES } from '../data/countries'
+import { createContext, useContext, useMemo } from 'react'
+import { useShallow } from 'zustand/react/shallow'
+import { BY_ID, DESTINATIONS } from '../data/countries'
 import { convert } from '../data/fx'
 import { evaluate } from '../lib/tax'
-import type { City, Country, Household, Profile, RegimeChoice, TaxResult } from '../types'
+import type { City, Destination, Household, Profile, RegimeChoice, TaxResult } from '../types'
 import { useFx } from './fx-context'
 import { useApp } from './store'
 
 export interface Row {
-  country: Country
+  dest: Destination
   city: City
   cityIndex: number
   res: TaxResult
@@ -18,6 +19,8 @@ export interface Row {
   tax: number
   salaryTax: number
   investmentTax: number
+  /** State/provincial/cantonal/regional income tax incl. city & payroll levies (whole income tax for foral regions); 0 for whole countries. */
+  regionalTax: number
   rentMonthly: number
   afterHousing: number
   /** After-housing income scaled by everyday costs relative to home. */
@@ -39,24 +42,27 @@ interface Ctx {
   useRegimes: boolean
 }
 
-export function computeRow(country: Country, cityIndex: number, choice: RegimeChoice, ctx: Ctx) {
+export function computeRow(dest: Destination, cityIndex: number, choice: RegimeChoice, ctx: Ctx) {
   const { profile, currency, rates, useRegimes } = ctx
-  const city = country.cities[cityIndex] ?? country.cities[0]
-  const toLocal = (v: number) => convert(rates, v, currency, country.currency)
+  const city = dest.cities[cityIndex] ?? dest.cities[0]
+  const toLocal = (v: number) => convert(rates, v, currency, dest.currency)
   const res = evaluate(
-    country,
+    dest,
     city,
     { salary: toLocal(profile.salary), gains: toLocal(profile.gains), dividends: toLocal(profile.dividends), interest: toLocal(profile.interest), netWorth: toLocal(profile.netWorth) },
     choice,
     useRegimes,
   )
-  const toDisplay = convert(rates, 1, country.currency, currency)
+  const toDisplay = convert(rates, 1, dest.currency, currency)
   const rentMonthly = convert(rates, rentFor(city, profile.household), 'USD', currency)
   const net = res.net * toDisplay
+  const sub = dest.subdivision
+  const foral = !!sub?.tax?.brackets && !sub.local
+  const regionalTax = sub ? res.lines.filter((l) => (foral ? l.key === 'income' : l.key.startsWith('local:'))).reduce((s, l) => s + l.amount, 0) * toDisplay : 0
   return {
-    country,
+    dest,
     city,
-    cityIndex: country.cities.indexOf(city),
+    cityIndex: dest.cities.indexOf(city),
     res,
     toDisplay,
     gross: res.gross * toDisplay,
@@ -64,23 +70,27 @@ export function computeRow(country: Country, cityIndex: number, choice: RegimeCh
     tax: res.totalTax * toDisplay,
     salaryTax: res.salaryTax * toDisplay,
     investmentTax: res.investmentTax * toDisplay,
+    regionalTax,
     rentMonthly,
     afterHousing: net - rentMonthly * 12,
   }
 }
 
-/** Newcomer regimes never apply automatically in the country you already live in. */
-export const regimeChoiceFor = (iso: string, homeIso: string, regimeByIso: Record<string, RegimeChoice>): RegimeChoice =>
-  regimeByIso[iso] ?? (iso === homeIso ? 'standard' : 'auto')
+/** Newcomer regimes never apply automatically where you already live (any region of your home country). */
+export const regimeChoiceFor = (id: string, homeId: string, regimeById: Record<string, RegimeChoice>): RegimeChoice =>
+  regimeById[id] ?? (BY_ID.get(id)?.iso2 === BY_ID.get(homeId)?.iso2 ? 'standard' : 'auto')
 
-export function useRows() {
-  const { profile, currency, useRegimes, homeIso, targets, cityByIso, regimeByIso } = useApp()
+/** Computes every destination's result once; consumed through `RowsProvider` / `useRows`. */
+export function useComputedRows() {
+  const { profile, currency, useRegimes, homeId, targets, cityById, regimeById } = useApp(
+    useShallow((s) => ({ profile: s.profile, currency: s.currency, useRegimes: s.useRegimes, homeId: s.homeId, targets: s.targets, cityById: s.cityById, regimeById: s.regimeById })),
+  )
   const { rates } = useFx()
 
   return useMemo(() => {
     const ctx = { profile, currency, rates, useRegimes }
-    const base = COUNTRIES.map((c) => computeRow(c, cityByIso[c.iso2] ?? 0, regimeChoiceFor(c.iso2, homeIso, regimeByIso), ctx))
-    const homeBase = base.find((r) => r.country.iso2 === homeIso) ?? base[0]
+    const base = DESTINATIONS.map((d) => computeRow(d, cityById[d.id] ?? 0, regimeChoiceFor(d.id, homeId, regimeById), ctx))
+    const homeBase = base.find((r) => r.dest.id === homeId) ?? base[0]
     const homeCol = homeBase.city.col
     const power = (r: (typeof base)[number]) => r.afterHousing * (homeCol / r.city.col)
     const homePower = power(homeBase)
@@ -89,8 +99,8 @@ export function useRows() {
       return {
         ...r,
         spendingPower,
-        isHome: r.country.iso2 === homeIso,
-        isTarget: targets.includes(r.country.iso2),
+        isHome: r.dest.id === homeId,
+        isTarget: targets.includes(r.dest.id),
         delta: {
           net: r.net - homeBase.net,
           afterHousing: r.afterHousing - homeBase.afterHousing,
@@ -99,9 +109,23 @@ export function useRows() {
         },
       }
     })
-    const byIso = new Map(rows.map((r) => [r.country.iso2, r]))
-    return { rows, byIso, home: byIso.get(homeIso)!, ctx, homeCol }
-  }, [profile, currency, rates, useRegimes, homeIso, targets, cityByIso, regimeByIso])
+    const byId = new Map(rows.map((r) => [r.dest.id, r]))
+    /** Rows of subdivided countries grouped by ISO2, best take-home first. */
+    const byCountry = new Map<string, Row[]>()
+    for (const r of rows) if (r.dest.subdivision) byCountry.set(r.dest.iso2, [...(byCountry.get(r.dest.iso2) ?? []), r])
+    for (const list of byCountry.values()) list.sort((a, b) => b.net - a.net)
+    return { rows, byId, byCountry, home: byId.get(homeId)!, ctx, homeCol }
+  }, [profile, currency, rates, useRegimes, homeId, targets, cityById, regimeById])
 }
 
-export const countryOf = (iso: string) => BY_ISO.get(iso)
+export type Rows = ReturnType<typeof useComputedRows>
+
+export const RowsContext = createContext<Rows | null>(null)
+
+export function useRows(): Rows {
+  const rows = useContext(RowsContext)
+  if (!rows) throw new Error('useRows must be used inside <RowsProvider>')
+  return rows
+}
+
+export const destinationOf = (id: string) => BY_ID.get(id)

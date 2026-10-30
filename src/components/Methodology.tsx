@@ -1,10 +1,13 @@
-import { COUNTRIES, DATA_YEAR } from '../data/countries'
+import { COUNTRIES, DATA_YEAR, DESTINATIONS } from '../data/countries'
+
+const REGION_COUNT = DESTINATIONS.filter((d) => d.subdivision).length
 
 const ITEMS: [string, string[]][] = [
   [
     'What’s modelled',
     [
-      'Progressive income tax, regional/state/cantonal/city income taxes for each listed city, employee social contributions (with caps), surcharges and tax credits.',
+      'Progressive income tax, employee social contributions (with caps), surcharges and tax credits, plus city income and payroll taxes where listed.',
+      `Every US state, Canadian province/territory, Swiss canton and Spanish autonomous community (${REGION_COUNT} in total) is its own destination with its own income and wealth taxes — including Quebec’s separate system and the Basque/Navarre foral regimes. Swiss cantonal figures are calibrated to the official ESTV calculator for each canton’s main city.`,
       'Capital gains, dividends and interest — flat, progressive, stacked (US/UK) or pooled schedules (Spain, Germany, Denmark…), plus NIIT-style surtaxes.',
       'Wealth taxes, Netherlands Box 3 deemed returns, New Zealand FIF and Colombian/Norwegian/Spanish/Swiss net-wealth taxes.',
       'Special regimes for newcomers (Beckham, IFICI, 30% ruling, Italian & Greek flat taxes, UK FIG, Swiss forfait and more) — the cheapest eligible one is picked unless you choose otherwise.',
@@ -35,7 +38,8 @@ export function Methodology() {
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <h2 className="text-2xl font-semibold tracking-tight text-white">Methodology</h2>
         <span className="text-sm text-slate-400">
-          {COUNTRIES.length} countries · {COUNTRIES.reduce((s, c) => s + c.cities.length, 0)} cities · {COUNTRIES.reduce((s, c) => s + (c.regimes?.length ?? 0), 0)} special regimes
+          {COUNTRIES.length} countries · {REGION_COUNT} states, provinces &amp; regions · {DESTINATIONS.reduce((s, d) => s + d.cities.length, 0)} cities ·{' '}
+          {COUNTRIES.reduce((s, c) => s + (c.regimes?.length ?? 0), 0)} special regimes
         </span>
       </div>
       <div className="mt-6 grid gap-8 md:grid-cols-3">

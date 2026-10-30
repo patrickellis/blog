@@ -8,6 +8,14 @@
   --color-ink-950: #050816;
   --color-ink-900: #0a1023;
   --color-ink-800: #111a33;
+  --animate-pop-in: pop-in 140ms cubic-bezier(0.2, 0.8, 0.2, 1);
+
+  @keyframes pop-in {
+    from {
+      opacity: 0;
+      transform: translateY(-4px) scale(0.98);
+    }
+  }
 }
 
 @layer base {
@@ -19,6 +27,13 @@
   body {
     @apply bg-ink-950 text-slate-200 antialiased;
     font-feature-settings: 'cv11', 'ss01', 'tnum';
+    @apply select-none;
+  }
+  input,
+  textarea,
+  select,
+  [contenteditable] {
+    @apply select-text;
   }
   ::selection {
     @apply bg-cyan-400/30;
@@ -38,7 +53,7 @@
 }
 
 @utility panel {
-  @apply rounded-2xl border border-white/10 bg-white/[0.03] shadow-[0_1px_0_0_rgba(255,255,255,0.04)_inset] backdrop-blur-xl;
+  @apply rounded-2xl border border-white/10 bg-white/[0.03] shadow-[0_1px_0_0_rgba(255,255,255,0.04)_inset];
 }
 @utility label {
   @apply text-[11px] font-semibold tracking-[0.08em] text-slate-400 uppercase;

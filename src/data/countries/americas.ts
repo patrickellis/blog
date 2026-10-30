@@ -1,5 +1,7 @@
 import type { Country } from '../../types'
 import { ALL_CAPITAL_EXEMPT, EXEMPT, FOREIGN_EXEMPT, I, flat, ord, stacked, zeroTax } from '../helpers'
+import { CANADA_PROVINCES } from './subdivisions/canada-provinces'
+import { US_STATES } from './subdivisions/us-states'
 
 const US_LTCG: [number, number][] = [[48350, 0], [533400, 0.15], [I, 0.2]]
 const US_SOCIAL = [
@@ -21,32 +23,15 @@ export const americas: Country[] = [
       interest: ord(),
       investmentSurtax: { name: 'Net investment income tax', rate: 0.038, threshold: 200000 },
     },
-    cities: [
-      {
-        name: 'New York City', rent1: 4300, rent3: 9500, col: 100,
-        local: [
-          { name: 'New York State tax', base: 'allIncome', allowance: 8000, brackets: [[8500, 0.04], [11700, 0.045], [13900, 0.0525], [80650, 0.055], [215400, 0.06], [1077550, 0.0685], [5000000, 0.0965], [25000000, 0.103], [I, 0.109]] },
-          { name: 'NYC income tax', base: 'allIncome', allowance: 8000, brackets: [[12000, 0.03078], [25000, 0.03762], [50000, 0.03819], [I, 0.03876]] },
-        ],
-      },
-      {
-        name: 'San Francisco', rent1: 3400, rent3: 6500, col: 95,
-        local: [
-          { name: 'California state tax', base: 'allIncome', allowance: 5540, brackets: [[10756, 0.01], [25499, 0.02], [40245, 0.04], [55866, 0.06], [70606, 0.08], [360659, 0.093], [432787, 0.103], [721314, 0.113], [1000000, 0.123], [I, 0.133]] },
-          { name: 'CA SDI', base: 'ordinary', brackets: [[I, 0.012]] },
-        ],
-      },
-      { name: 'Miami', rent1: 3000, rent3: 6000, col: 82, note: 'No state income tax' },
-      { name: 'Austin', rent1: 1900, rent3: 3700, col: 72, note: 'No state income tax' },
-      {
-        name: 'Seattle', rent1: 2500, rent3: 4800, col: 88,
-        local: [{ name: 'WA capital gains tax', base: 'gains', allowance: 278000, brackets: [[722000, 0.07], [I, 0.099]] }],
-      },
-    ],
+    cities: [],
+    subdivisionKind: 'state',
+    subdivisions: US_STATES,
+    defaultSubdivision: 'NY',
+    focusAltitude: 1.3,
     headline: { topIncome: 0.37, cgt: '0% / 15% / 20% (+3.8% NIIT, + state)', dividends: '0% – 23.8% (qualified)', wealth: 'None', inheritance: 'Estate tax 40% above $15M' },
     exitTax: 'Expatriation tax for “covered expatriates” (net worth > $2M) who renounce citizenship or a long-term green card.',
     visas: ['H-1B', 'O-1 extraordinary ability', 'EB-5 investor ($800k+)', 'E-2 treaty investor'],
-    notes: ['US citizens are taxed on worldwide income wherever they live (FEIE/foreign tax credits soften this).', 'State tax varies from 0% (FL, TX) to 13.3% (CA).'],
+    notes: ['US citizens are taxed on worldwide income wherever they live (FEIE/foreign tax credits soften this).', 'State income tax ranges from 0% (AK, FL, NV, NH, SD, TN, TX, WA, WY) to 13.3% (CA); some cities add their own.'],
     hdi: 0.927, english: 'Native', utc: '-5',
   },
   {
@@ -86,24 +71,15 @@ export const americas: Country[] = [
       dividends: ord(),
       interest: ord(),
     },
-    cities: [
-      {
-        name: 'Toronto', rent1: 1950, rent3: 3700, col: 72,
-        local: [{ name: 'Ontario tax (incl. surtax)', base: 'ordinary', credit: 644, brackets: [[52886, 0.0505], [105775, 0.0915], [150000, 0.1116], [220000, 0.1216], [I, 0.1316]], surtax: [[5710, 0.2], [7307, 0.36]] }],
-      },
-      {
-        name: 'Vancouver', rent1: 2100, rent3: 4000, col: 74,
-        local: [{ name: 'British Columbia tax', base: 'ordinary', credit: 654, brackets: [[49279, 0.0506], [98560, 0.077], [113158, 0.105], [137407, 0.1229], [186306, 0.147], [259829, 0.168], [I, 0.205]] }],
-      },
-      {
-        name: 'Calgary', rent1: 1450, rent3: 2600, col: 68,
-        local: [{ name: 'Alberta tax', base: 'ordinary', credit: 1786, brackets: [[60000, 0.08], [151234, 0.1], [181481, 0.12], [241974, 0.13], [362961, 0.14], [I, 0.15]] }],
-      },
-    ],
+    cities: [],
+    subdivisionKind: 'province',
+    subdivisions: CANADA_PROVINCES,
+    defaultSubdivision: 'ON',
+    focusAltitude: 1.5,
     headline: { topIncome: 0.535, cgt: 'Up to ~27% (50% inclusion)', dividends: 'As income (credit for Canadian)', wealth: 'None', inheritance: 'None (deemed disposition at death)' },
     exitTax: 'Departure tax: deemed disposition of most assets at market value when emigrating.',
     visas: ['Express Entry', 'Global Talent Stream', 'Start-up Visa'],
-    notes: ['Quebec has its own income tax system (not modelled).', 'Eligible Canadian dividends are taxed far lower than shown via the dividend tax credit.'],
+    notes: ['Provincial tax comes on top of federal tax; combined top rates range from 44.5% (Nunavut) to 54.8% (Newfoundland and Labrador).', 'Eligible Canadian dividends are taxed far lower than shown via the dividend tax credit.'],
     hdi: 0.939, english: 'Native', utc: '-5',
   },
   {

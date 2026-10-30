@@ -3,7 +3,7 @@ import { useState } from 'react'
 import { DATA_YEAR } from '../data/countries'
 import { DISPLAY_CURRENCIES } from '../data/fx'
 import { useFx } from '../state/fx-context'
-import { useApp } from '../state/store'
+import { shareUrl, useApp } from '../state/store'
 
 const NAV = [
   ['#explore', 'Explore'],
@@ -19,7 +19,7 @@ export function Header() {
   const [copied, setCopied] = useState(false)
 
   const share = async () => {
-    await navigator.clipboard?.writeText(location.href)
+    await navigator.clipboard?.writeText(shareUrl())
     setCopied(true)
     setTimeout(() => setCopied(false), 1800)
   }

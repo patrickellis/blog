@@ -64,10 +64,12 @@ export interface WealthTax {
 export interface LocalTax {
   name: string
   brackets: Brackets
-  /** ordinary = salary/ordinary base; allIncome = salary + all capital income; gains = capital gains only */
-  base: 'ordinary' | 'allIncome' | 'gains'
+  /** ordinary = salary/ordinary base; allIncome = salary + all capital income; gains = capital gains only; salary = gross wages (city wage taxes, payroll levies) */
+  base: 'ordinary' | 'allIncome' | 'gains' | 'salary'
   allowance?: number
   credit?: number
+  /** Share of capital gains included in an allIncome base (state long-term gains exclusions). */
+  gainsInclusion?: number
   /** Ontario-style surtax: Σ rate × max(0, localTax − threshold). */
   surtax?: [number, number][]
 }
@@ -95,6 +97,8 @@ export interface TaxSystem {
   dividends: Treatment
   interest: Treatment
   wealth?: WealthTax
+  /** Minimum wealth tax that regional relief cannot reduce; the higher of the two is due (Spain's solidarity tax). */
+  wealthFloor?: WealthTax
 }
 
 export interface Regime {
@@ -122,6 +126,19 @@ export interface Regime {
   fixedAnnualTax?: number
   /** Fixed tax replaces all other income, capital and wealth taxes (Swiss forfait). */
   replacesAll?: boolean
+  /** Official government page describing the regime. */
+  url?: string
+}
+
+/** Official government pages linked from the details drawer. */
+export interface Sources {
+  income?: string
+  gains?: string
+  dividends?: string
+  wealth?: string
+  inheritance?: string
+  /** Keyed by the exact visa name used in `Country.visas`. */
+  visas?: Record<string, string>
 }
 
 export interface City {
@@ -141,6 +158,32 @@ export type Region = 'Europe' | 'Middle East' | 'Asia-Pacific' | 'Americas' | 'A
 
 export type English = 'Native' | 'Very high' | 'High' | 'Moderate' | 'Low'
 
+export type SubdivisionKind = 'state' | 'province' | 'canton' | 'region'
+
+/** A state/province/canton with its own taxes. Each one becomes a separate destination. */
+export interface Subdivision {
+  /** ISO 3166-2 suffix (e.g. 'ON'); the destination id is `${iso2}-${code}` and must match the map feature id. */
+  code: string
+  name: string
+  lat: number
+  lng: number
+  micro?: boolean
+  /** Regional income taxes added to every city (state/provincial/regional income tax, payroll levies). */
+  local?: LocalTax[]
+  /** Regional wealth tax replacing the national one (null = none). Cities can still override it. */
+  wealth?: WealthTax | null
+  /** Overrides parts of the national system (Quebec abatement and QPP, Spanish foral systems). */
+  tax?: Partial<TaxSystem>
+  /** National regimes not available here. */
+  excludeRegimes?: string[]
+  cities: City[]
+  /** Top marginal rate of the regional (state/provincial/cantonal) income tax alone, incl. the main city's local tax. Omitted for foral systems where the region levies the whole tax. */
+  regionalTopRate?: number
+  headline?: Partial<Country['headline']>
+  notes?: string[]
+  utc?: string
+}
+
 export interface Country {
   iso2: string
   /** ISO 3166-1 numeric, matching world-atlas feature ids. */
@@ -154,7 +197,14 @@ export interface Country {
   micro?: boolean
   tax: TaxSystem
   regimes?: Regime[]
+  /** Empty when the country is split into subdivisions (cities then live on each subdivision). */
   cities: City[]
+  subdivisionKind?: SubdivisionKind
+  subdivisions?: Subdivision[]
+  /** Subdivision used when only the country code is given (old links, browser locale). */
+  defaultSubdivision?: string
+  /** Globe camera altitude when focusing one of its subdivisions (smaller = closer; countries use 2). */
+  focusAltitude?: number
   /** Headline facts shown in summaries. */
   headline: {
     topIncome: number
@@ -165,6 +215,7 @@ export interface Country {
   }
   exitTax?: string
   visas: string[]
+  sources?: Sources
   notes: string[]
   hdi?: number
   english: English
@@ -172,6 +223,16 @@ export interface Country {
   /** Taxes worldwide income of citizens even when non-resident. */
   citizenshipTaxation?: boolean
   territorial?: boolean
+}
+
+/** The unit that is ranked, compared and drawn on the globe: a whole country or one of its subdivisions. */
+export interface Destination extends Country {
+  /** ISO2 for whole countries, ISO 3166-2 (e.g. 'CA-ON') for subdivisions. */
+  id: string
+  /** Full display name, e.g. "Ontario, Canada". */
+  label: string
+  countryName: string
+  subdivision?: Subdivision
 }
 
 export type Household = 'single' | 'couple' | 'family'

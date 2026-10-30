@@ -1,4 +1,4 @@
-import type { Brackets, City, Country, Regime, RegimeChoice, TaxLine, TaxResult, Treatment } from '../types'
+import type { Brackets, City, Country, Regime, RegimeChoice, TaxLine, TaxResult, Treatment, WealthTax } from '../types'
 
 export interface Amounts {
   salary: number
@@ -163,7 +163,11 @@ function core(country: Country, city: City, a: Amounts, r?: Regime) {
 
   if (!r?.noLocal) {
     for (const l of city.local ?? []) {
-      const b = l.base === 'ordinary' ? salaryBase + ordinaryCap : l.base === 'allIncome' ? S - socialDed + capitalIncome : a.gains
+      const b =
+        l.base === 'ordinary' ? salaryBase + ordinaryCap
+        : l.base === 'allIncome' ? S - socialDed + capitalIncome - a.gains * (1 - (l.gainsInclusion ?? 1))
+        : l.base === 'salary' ? S
+        : a.gains
       let t = pos(bracketTax(pos(b - (l.allowance ?? 0)), l.brackets) - (l.credit ?? 0))
       if (l.surtax) t += l.surtax.reduce((s, [th, rate]) => s + rate * pos(t - th), 0)
       add(`local:${l.name}`, l.name, t, 'income')
@@ -171,10 +175,12 @@ function core(country: Country, city: City, a: Amounts, r?: Regime) {
   }
 
   if (!r?.noWealthTax) {
+    const wealthTax = (w?: WealthTax) => (w && (!w.threshold || a.netWorth > w.threshold) ? bracketTax(pos(a.netWorth - (w.allowance ?? 0)), w.brackets) : 0)
     const w = city.wealth === null ? undefined : (city.wealth ?? sys.wealth)
-    if (w && (!w.threshold || a.netWorth > w.threshold)) {
-      add('wealth', w.name, bracketTax(pos(a.netWorth - (w.allowance ?? 0)), w.brackets), 'wealth')
-    }
+    const regional = wealthTax(w)
+    const floor = wealthTax(sys.wealthFloor)
+    const applied = floor > regional ? sys.wealthFloor : w
+    if (applied) add('wealth', applied.name, Math.max(regional, floor), 'wealth')
   }
 
   if (r?.fixedAnnualTax) add('fixed', `${r.name} (annual lump sum)`, r.fixedAnnualTax, 'regime')

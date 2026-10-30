@@ -1,10 +1,11 @@
 import { ArrowRight, BadgePercent, DoorOpen, Plus, X } from 'lucide-react'
-import { BY_ISO } from '../data/countries'
+import { BY_ID, siblingsOf, subdivisionLabel } from '../data/countries'
 import { cx, money, pct } from '../lib/format'
 import { isEligible } from '../lib/tax'
 import { HOUSING_LABEL, regimeChoiceFor, useRows, type Row } from '../state/results'
 import { MAX_COMPARE, useApp } from '../state/store'
 import { CountryPicker } from './CountryPicker'
+import { RegionChip } from './RegionalSpread'
 import { Delta, Flag, Hint } from './ui'
 
 const SEGMENTS = [
@@ -35,12 +36,13 @@ function Breakdown({ row }: { row: Row }) {
 }
 
 function CompareCard({ row }: { row: Row }) {
-  const { currency, profile, regimeByIso, homeIso } = useApp()
-  const { toggleTarget, setCity, setRegime, openDrawer } = useApp.getState()
-  const c = row.country
+  const { currency, profile, regimeById, homeId, targets } = useApp()
+  const { toggleTarget, setCity, setRegime, openDrawer, swapDestination } = useApp.getState()
+  const c = row.dest
   const res = row.res
   const salaryLocal = res.salary
-  const choice = regimeChoiceFor(c.iso2, homeIso, regimeByIso)
+  const choice = regimeChoiceFor(c.id, homeId, regimeById)
+  const siblings = c.subdivision ? siblingsOf(c).sort((a, b) => a.name.localeCompare(b.name)) : []
 
   return (
     <article className={cx('panel relative flex flex-col overflow-hidden', row.isHome && 'ring-1 ring-amber-400/30')}>
@@ -53,9 +55,28 @@ function CompareCard({ row }: { row: Row }) {
               <h3 className="truncate font-semibold text-white">{c.name}</h3>
               {row.isHome && <span className="chip border-amber-400/40 bg-amber-400/15 text-amber-200">Home</span>}
             </div>
+            {c.subdivision && (
+              <div className="mt-0.5 flex items-center gap-1.5 text-xs text-slate-400">
+                {c.countryName} <RegionChip row={row} className="py-0 text-[10px]" />
+              </div>
+            )}
             <div className="mt-1.5 flex flex-wrap gap-1.5">
+              {siblings.length > 1 && (
+                <select
+                  aria-label={`Switch ${subdivisionLabel(c).one.toLowerCase()} in ${c.countryName}`}
+                  value={c.id}
+                  onChange={(e) => swapDestination(c.id, e.target.value)}
+                  className="field w-auto max-w-[10rem] cursor-pointer border-teal-300/30 px-2 py-1 text-xs"
+                >
+                  {siblings.map((s) => (
+                    <option key={s.id} value={s.id} disabled={s.id !== c.id && (s.id === homeId || (!row.isHome && targets.includes(s.id)))}>
+                      {s.name}
+                    </option>
+                  ))}
+                </select>
+              )}
               {c.cities.length > 1 ? (
-                <select aria-label={`${c.name} city`} value={row.cityIndex} onChange={(e) => setCity(c.iso2, Number(e.target.value))} className="field w-auto cursor-pointer px-2 py-1 text-xs">
+                <select aria-label={`${c.label} city`} value={row.cityIndex} onChange={(e) => setCity(c.id, Number(e.target.value))} className="field w-auto cursor-pointer px-2 py-1 text-xs">
                   {c.cities.map((city, i) => (
                     <option key={city.name} value={i}>
                       {city.name}
@@ -66,7 +87,7 @@ function CompareCard({ row }: { row: Row }) {
                 <span className="chip">{row.city.name}</span>
               )}
               {!!c.regimes?.length && (
-                <select aria-label={`${c.name} tax regime`} value={choice} onChange={(e) => setRegime(c.iso2, e.target.value)} className="field w-auto max-w-[11rem] cursor-pointer px-2 py-1 text-xs">
+                <select aria-label={`${c.label} tax regime`} value={choice} onChange={(e) => setRegime(c.id, e.target.value)} className="field w-auto max-w-[11rem] cursor-pointer px-2 py-1 text-xs">
                   <option value="auto">Best available regime</option>
                   <option value="standard">Standard rules</option>
                   {c.regimes.map((r) => (
@@ -80,7 +101,7 @@ function CompareCard({ row }: { row: Row }) {
             </div>
           </div>
           {!row.isHome && (
-            <button onClick={() => toggleTarget(c.iso2)} className="btn-ghost -mt-1 -mr-2 p-1.5" aria-label={`Remove ${c.name}`}>
+            <button onClick={() => toggleTarget(c.id)} className="btn-ghost -mt-1 -mr-2 p-1.5" aria-label={`Remove ${c.label}`}>
               <X className="h-4 w-4" />
             </button>
           )}
@@ -119,7 +140,7 @@ function CompareCard({ row }: { row: Row }) {
                 <span
                   className={cx(
                     'h-2 w-2 shrink-0 rounded-sm',
-                    l.group === 'income' ? 'bg-rose-400' : l.group === 'social' ? 'bg-orange-300' : l.group === 'investment' ? 'bg-violet-400' : 'bg-fuchsia-400',
+                    c.subdivision && l.key.startsWith('local:') ? 'bg-teal-300' : l.group === 'income' ? 'bg-rose-400' : l.group === 'social' ? 'bg-orange-300' : l.group === 'investment' ? 'bg-violet-400' : 'bg-fuchsia-400',
                   )}
                 />
                 <span className="truncate">{l.label}</span>
@@ -203,7 +224,7 @@ function CompareCard({ row }: { row: Row }) {
           </div>
         )}
 
-        <button onClick={() => openDrawer(c.iso2)} className="btn-ghost mt-auto self-start px-0 text-cyan-300 hover:bg-transparent hover:text-cyan-200">
+        <button onClick={() => openDrawer(c.id)} className="btn-ghost mt-auto self-start px-0 text-cyan-300 hover:bg-transparent hover:text-cyan-200">
           Full profile <ArrowRight className="h-4 w-4" />
         </button>
       </div>
@@ -212,10 +233,10 @@ function CompareCard({ row }: { row: Row }) {
 }
 
 export function CompareSection() {
-  const { homeIso, targets } = useApp()
+  const { homeId, targets } = useApp()
   const { toggleTarget } = useApp.getState()
-  const { byIso } = useRows()
-  const rows = [homeIso, ...targets].map((iso) => byIso.get(iso)!).filter(Boolean)
+  const { byId } = useRows()
+  const rows = [homeId, ...targets].map((id) => byId.get(id)!).filter(Boolean)
 
   return (
     <section id="compare" className="space-y-4">
@@ -223,7 +244,7 @@ export function CompareSection() {
         <div>
           <h2 className="text-2xl font-semibold tracking-tight text-white">Side-by-side</h2>
           <p className="mt-1 text-sm text-slate-400">
-            {BY_ISO.get(homeIso)!.name} vs. {targets.length} destination{targets.length === 1 ? '' : 's'}. Change cities and regimes per country.
+            {BY_ID.get(homeId)!.label} vs. {targets.length} destination{targets.length === 1 ? '' : 's'}. Change regions, cities and regimes per card.
           </p>
         </div>
         <div className="flex items-center gap-3">
@@ -238,7 +259,7 @@ export function CompareSection() {
             <CountryPicker
               label="Add a destination"
               align="right"
-              exclude={[homeIso, ...targets]}
+              exclude={[homeId, ...targets]}
               onSelect={toggleTarget}
               trigger={
                 <span className="btn-primary">
@@ -251,7 +272,7 @@ export function CompareSection() {
       </div>
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
         {rows.map((r) => (
-          <CompareCard key={r.country.iso2} row={r} />
+          <CompareCard key={r.dest.id} row={r} />
         ))}
         {targets.length === 0 && (
           <div className="panel grid place-items-center p-8 text-center text-sm text-slate-400">

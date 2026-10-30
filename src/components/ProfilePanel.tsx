@@ -1,6 +1,6 @@
 import { AlertTriangle, Baby, Briefcase, ChevronDown, Landmark, LineChart, PiggyBank, Sparkles, User, Users, Wallet } from 'lucide-react'
 import { useState } from 'react'
-import { BY_ISO } from '../data/countries'
+import { BY_ID, subdivisionLabel } from '../data/countries'
 import { PRESETS } from '../data/presets'
 import { cx, money } from '../lib/format'
 import { useFx } from '../state/fx-context'
@@ -12,11 +12,11 @@ import { MoneyInput } from './MoneyInput'
 import { Segmented, Toggle } from './ui'
 
 export function ProfilePanel() {
-  const { profile, currency, homeIso, cityByIso, useRegimes, activePreset } = useApp()
+  const { profile, currency, homeId, cityById, useRegimes, activePreset } = useApp()
   const { setProfile, applyPreset, setHome, setCity, setUseRegimes } = useApp.getState()
   const { rates } = useFx()
   const { home } = useRows()
-  const homeCountry = BY_ISO.get(homeIso)!
+  const homeCountry = BY_ID.get(homeId)!
   const capital = profile.gains + profile.dividends + profile.interest
   const [showInvest, setShowInvest] = useState(capital > 0 || profile.salary === 0)
   const scale = rates[currency] ?? 1
@@ -56,14 +56,16 @@ export function ProfilePanel() {
         <div className="label flex items-center gap-1.5">
           <span className="h-2 w-2 rounded-full bg-home" /> Where you live now
         </div>
-        <div className="grid grid-cols-[1fr_auto] gap-2">
-          <CountryPicker label="Home country" value={homeIso} onSelect={setHome} />
+        <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,9rem)] gap-2">
+          <div className={cx('min-w-0', homeCountry.cities.length <= 1 && 'col-span-2')}>
+            <CountryPicker label="Home country or region" value={homeId} onSelect={setHome} />
+          </div>
           {homeCountry.cities.length > 1 && (
             <select
               aria-label="Home city"
-              className="field w-36 cursor-pointer"
-              value={cityByIso[homeIso] ?? 0}
-              onChange={(e) => setCity(homeIso, Number(e.target.value))}
+              className="field min-w-0 cursor-pointer truncate"
+              value={cityById[homeId] ?? 0}
+              onChange={(e) => setCity(homeId, Number(e.target.value))}
             >
               {homeCountry.cities.map((c, i) => (
                 <option key={c.name} value={i}>
@@ -73,6 +75,11 @@ export function ProfilePanel() {
             </select>
           )}
         </div>
+        {homeCountry.subdivision && (
+          <p className="text-xs text-slate-500">
+            {homeCountry.countryName} taxes differ by {subdivisionLabel(homeCountry).one.toLowerCase()} — pick the one you live in.
+          </p>
+        )}
         {homeCountry.citizenshipTaxation && (
           <div className="flex gap-2 rounded-xl border border-amber-400/30 bg-amber-400/10 p-3 text-xs leading-relaxed text-amber-100">
             <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-300" />

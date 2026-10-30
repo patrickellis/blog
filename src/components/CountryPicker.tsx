@@ -1,6 +1,6 @@
 import { ChevronDown, Search } from 'lucide-react'
 import { useEffect, useId, useMemo, useRef, useState, type ReactNode } from 'react'
-import { COUNTRIES, REGIONS } from '../data/countries'
+import { DESTINATIONS, REGIONS, subdivisionLabel } from '../data/countries'
 import { cx } from '../lib/format'
 import { Flag } from './ui'
 
@@ -13,7 +13,8 @@ export function CountryPicker({
   align = 'left',
 }: {
   value?: string
-  onSelect: (iso: string) => void
+  /** Receives a destination id (ISO2, or e.g. 'CA-ON' for a province). */
+  onSelect: (id: string) => void
   exclude?: string[]
   /** Custom trigger content; defaults to a field showing the selected country. */
   trigger?: ReactNode
@@ -26,13 +27,13 @@ export function CountryPicker({
   const root = useRef<HTMLDivElement>(null)
   const list = useRef<HTMLUListElement>(null)
   const listId = useId()
-  const selected = COUNTRIES.find((c) => c.iso2 === value)
+  const selected = DESTINATIONS.find((d) => d.id === value)
 
   const options = useMemo(() => {
     const q = query.trim().toLowerCase()
-    return COUNTRIES.filter((c) => !exclude.includes(c.iso2)).filter(
-      (c) => !q || c.name.toLowerCase().includes(q) || c.iso2.toLowerCase() === q || c.cities.some((city) => city.name.toLowerCase().includes(q)),
-    ).sort((a, b) => REGIONS.indexOf(a.region) - REGIONS.indexOf(b.region) || a.name.localeCompare(b.name))
+    return DESTINATIONS.filter((d) => !exclude.includes(d.id))
+      .filter((d) => !q || d.label.toLowerCase().includes(q) || d.id.toLowerCase() === q || d.iso2.toLowerCase() === q || d.cities.some((city) => city.name.toLowerCase().includes(q)))
+      .sort((a, b) => REGIONS.indexOf(a.region) - REGIONS.indexOf(b.region) || a.countryName.localeCompare(b.countryName) || a.name.localeCompare(b.name))
   }, [query, exclude])
 
   useEffect(() => {
@@ -47,8 +48,8 @@ export function CountryPicker({
     list.current?.querySelector(`[data-index="${active}"]`)?.scrollIntoView({ block: 'nearest' })
   }, [active])
 
-  const choose = (iso: string) => {
-    onSelect(iso)
+  const choose = (id: string) => {
+    onSelect(id)
     setOpen(false)
     setQuery('')
   }
@@ -61,13 +62,14 @@ export function CountryPicker({
         aria-expanded={open}
         aria-label={label}
         onClick={() => setOpen((o) => !o)}
-        className={trigger ? undefined : 'field flex items-center gap-2 text-left'}
+        title={trigger ? undefined : selected?.label}
+        className={trigger ? undefined : 'field flex min-w-0 items-center gap-2 text-left'}
       >
         {trigger ?? (
           <>
-            {selected ? <Flag iso={selected.iso2} className="text-lg" /> : null}
-            <span className="flex-1 truncate">{selected?.name ?? 'Select a country'}</span>
-            <ChevronDown className="h-4 w-4 text-slate-500" />
+            {selected ? <Flag iso={selected.iso2} className="shrink-0 text-lg" /> : null}
+            <span className="min-w-0 flex-1 truncate">{selected?.label ?? 'Select a country'}</span>
+            <ChevronDown className="h-4 w-4 shrink-0 text-slate-500" />
           </>
         )}
       </button>
@@ -85,15 +87,15 @@ export function CountryPicker({
               role="combobox"
               aria-controls={listId}
               aria-expanded
-              aria-activedescendant={options[active] ? `${listId}-${options[active].iso2}` : undefined}
-              placeholder="Search country or city…"
+              aria-activedescendant={options[active] ? `${listId}-${options[active].id}` : undefined}
+              placeholder="Search country, state, province or city…"
               className="w-full bg-transparent py-2.5 text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               onKeyDown={(e) => {
                 if (e.key === 'ArrowDown') (e.preventDefault(), setActive((a) => Math.min(a + 1, options.length - 1)))
                 else if (e.key === 'ArrowUp') (e.preventDefault(), setActive((a) => Math.max(a - 1, 0)))
-                else if (e.key === 'Enter' && options[active]) (e.preventDefault(), choose(options[active].iso2))
+                else if (e.key === 'Enter' && options[active]) (e.preventDefault(), choose(options[active].id))
                 else if (e.key === 'Escape') setOpen(false)
               }}
             />
@@ -101,20 +103,28 @@ export function CountryPicker({
           <ul ref={list} id={listId} role="listbox" aria-label={label} className="scrollbar-thin max-h-72 overflow-y-auto py-1">
             {options.length === 0 && <li className="px-3 py-6 text-center text-sm text-slate-500">No matching destinations</li>}
             {options.map((c, i) => (
-              <li key={c.iso2}>
+              <li key={c.id}>
                 {(i === 0 || options[i - 1].region !== c.region) && <div className="label px-3 pt-2 pb-1 text-[10px]">{c.region}</div>}
+                {c.subdivision && (i === 0 || options[i - 1].iso2 !== c.iso2) && (
+                  <div className="flex items-center gap-2 px-3 pt-1.5 pb-0.5 text-xs text-slate-400" role="presentation">
+                    <Flag iso={c.iso2} className="text-base" />
+                    <span className="flex-1 truncate font-medium text-slate-300">{c.countryName}</span>
+                    <span className="text-[10px] text-teal-300/80">by {subdivisionLabel(c).one.toLowerCase()}</span>
+                  </div>
+                )}
                 <div
-                  id={`${listId}-${c.iso2}`}
+                  id={`${listId}-${c.id}`}
                   role="option"
-                  aria-selected={c.iso2 === value}
+                  aria-selected={c.id === value}
+                  aria-label={c.label}
                   data-index={i}
                   onMouseEnter={() => setActive(i)}
-                  onClick={() => choose(c.iso2)}
-                  className={cx('flex cursor-pointer items-center gap-2 px-3 py-1.5 text-sm', i === active ? 'bg-white/10 text-white' : 'text-slate-300')}
+                  onClick={() => choose(c.id)}
+                  className={cx('flex cursor-pointer items-center gap-2 px-3 py-1.5 text-sm', c.subdivision && 'pl-9', i === active ? 'bg-white/10 text-white' : 'text-slate-300')}
                 >
-                  <Flag iso={c.iso2} className="text-base" />
+                  {!c.subdivision && <Flag iso={c.iso2} className="text-base" />}
                   <span className="flex-1 truncate">{c.name}</span>
-                  <span className="text-xs text-slate-500">{c.currency}</span>
+                  <span className="text-xs text-slate-500">{c.subdivision ? c.cities[0].name : c.currency}</span>
                 </div>
               </li>
             ))}

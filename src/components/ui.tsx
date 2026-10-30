@@ -1,6 +1,117 @@
-import { Info } from 'lucide-react'
-import type { ReactNode } from 'react'
+import { ExternalLink, Info } from 'lucide-react'
+import { useEffect, useId, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
 import { cx, money, pct } from '../lib/format'
+
+/** Link to an external (official) page, opening in a new tab. */
+export function ExtLink({ href, children, className }: { href: string; children: ReactNode; className?: string }) {
+  return (
+    <a href={href} target="_blank" rel="noopener noreferrer" className={cx('inline-flex items-center gap-1 text-cyan-300 underline-offset-2 hover:text-cyan-200 hover:underline', className)}>
+      {children}
+      <ExternalLink className="h-3 w-3 shrink-0 opacity-70" aria-hidden />
+      <span className="sr-only">(opens in a new tab)</span>
+    </a>
+  )
+}
+
+const GAP = 8
+
+/**
+ * A focusable trigger that reveals a floating panel on hover, focus or tap. The panel stays in DOM order
+ * (so links inside are reachable by keyboard) but is fixed-positioned against the viewport, flipping above
+ * the trigger when there's more room there.
+ */
+export function HoverCard({ trigger, children, label, className }: { trigger: ReactNode; children: ReactNode; label: string; className?: string }) {
+  const [open, setOpen] = useState(false)
+  const wrap = useRef<HTMLDivElement>(null)
+  const panel = useRef<HTMLDivElement>(null)
+  const timer = useRef(0)
+  const id = useId()
+
+  const schedule = (next: boolean) => {
+    clearTimeout(timer.current)
+    timer.current = window.setTimeout(() => setOpen(next), next ? 120 : 160)
+  }
+  const show = (next: boolean) => {
+    clearTimeout(timer.current)
+    setOpen(next)
+  }
+  useEffect(() => () => clearTimeout(timer.current), [])
+
+  useLayoutEffect(() => {
+    const t = wrap.current?.getBoundingClientRect()
+    const p = panel.current
+    if (!open || !t || !p) return
+    const below = innerHeight - t.bottom - GAP * 2
+    const above = t.top - GAP * 2
+    p.style.maxHeight = `${Math.max(below, above)}px`
+    const h = p.offsetHeight
+    const w = p.offsetWidth
+    const up = h > below && above > below
+    p.style.maxHeight = `${up ? above : below}px`
+    p.style.top = `${up ? t.top - GAP - Math.min(h, above) : t.bottom + GAP}px`
+    const left = t.left + w > innerWidth - GAP ? t.right - w : t.left
+    p.style.left = `${Math.max(GAP, Math.min(left, innerWidth - w - GAP))}px`
+  }, [open])
+
+  useEffect(() => {
+    if (!open) return
+    const close = () => setOpen(false)
+    const onScroll = (e: Event) => !panel.current?.contains(e.target as Node) && close()
+    const onDown = (e: PointerEvent) => !wrap.current?.contains(e.target as Node) && close()
+    window.addEventListener('scroll', onScroll, true)
+    window.addEventListener('resize', close)
+    document.addEventListener('pointerdown', onDown)
+    return () => {
+      window.removeEventListener('scroll', onScroll, true)
+      window.removeEventListener('resize', close)
+      document.removeEventListener('pointerdown', onDown)
+    }
+  }, [open])
+
+  return (
+    <div
+      ref={wrap}
+      className={className}
+      onPointerEnter={(e) => e.pointerType === 'mouse' && schedule(true)}
+      onPointerLeave={(e) => e.pointerType === 'mouse' && schedule(false)}
+      onFocus={() => show(true)}
+      onBlur={(e) => !wrap.current?.contains(e.relatedTarget as Node) && show(false)}
+      onKeyDown={(e) => {
+        if (e.key !== 'Escape' || !open) return
+        e.stopPropagation()
+        show(false)
+      }}
+    >
+      <div
+        role="button"
+        tabIndex={0}
+        aria-expanded={open}
+        aria-controls={open ? id : undefined}
+        aria-haspopup="dialog"
+        onClick={() => show(true)}
+        onKeyDown={(e) => {
+          if (e.key !== 'Enter' && e.key !== ' ') return
+          e.preventDefault()
+          show(!open)
+        }}
+        className="h-full"
+      >
+        {trigger}
+      </div>
+      {open && (
+        <div
+          ref={panel}
+          id={id}
+          role="dialog"
+          aria-label={label}
+          className="scrollbar-thin fixed z-[60] w-[360px] max-w-[calc(100vw-16px)] animate-pop-in overflow-y-auto rounded-xl border border-white/10 bg-ink-800 p-4 text-left text-xs leading-relaxed text-slate-300 shadow-2xl shadow-black/60 motion-reduce:animate-none"
+        >
+          {children}
+        </div>
+      )}
+    </div>
+  )
+}
 
 export function Segmented<T extends string>({
   value,
@@ -74,8 +185,8 @@ export function Delta({ value, currency, pctValue, compact = true, className }: 
   const tone = Math.abs(value) < 1 ? 'text-slate-400' : value > 0 ? 'text-emerald-400' : 'text-rose-400'
   return (
     <span className={cx('font-medium tabular-nums', tone, className)}>
-      {money(value, currency, { compact, sign: true })}
-      {pctValue !== undefined && Number.isFinite(pctValue) && Math.abs(value) >= 1 && <span className="ml-1 opacity-75">({pct(pctValue, 0, true)})</span>}
+      <span className="whitespace-nowrap">{money(value, currency, { compact, sign: true })}</span>
+      {pctValue !== undefined && Number.isFinite(pctValue) && Math.abs(value) >= 1 && <span className="ml-1 whitespace-nowrap opacity-75">({pct(pctValue, 0, true)})</span>}
     </span>
   )
 }

@@ -1,28 +1,29 @@
 import { ArrowDown, ArrowUp, Check, Plus, Search } from 'lucide-react'
 import { useMemo, useState } from 'react'
-import { REGIONS } from '../data/countries'
+import { REGIONS, subdivisionLabel } from '../data/countries'
 import { cx, money, pct } from '../lib/format'
 import { HOUSING_LABEL, useRows, type Row } from '../state/results'
 import { useApp } from '../state/store'
+import { RegionChip } from './RegionalSpread'
 import { Delta, Flag, Hint } from './ui'
 
 type SortKey = 'name' | 'net' | 'delta' | 'afterHousing' | 'spendingPower' | 'effective' | 'investment' | 'rent'
 
 const FILTERS = {
-  zeroIncome: { label: '0% income tax', test: (r: Row) => r.country.headline.topIncome === 0 },
+  zeroIncome: { label: '0% income tax', test: (r: Row) => r.dest.headline.topIncome === 0 },
   noGains: {
     label: 'No tax on foreign gains',
-    test: (r: Row) => r.country.tax.gains.t === 'exempt' || !!r.country.regimes?.some((g) => g.capital?.gains?.t === 'exempt' || g.replacesAll),
+    test: (r: Row) => r.dest.tax.gains.t === 'exempt' || !!r.dest.regimes?.some((g) => g.capital?.gains?.t === 'exempt' || g.replacesAll),
   },
-  regime: { label: 'Has expat regime', test: (r: Row) => !!r.country.regimes?.length },
-  territorial: { label: 'Territorial', test: (r: Row) => !!r.country.territorial },
+  regime: { label: 'Has expat regime', test: (r: Row) => !!r.dest.regimes?.length },
+  territorial: { label: 'Territorial', test: (r: Row) => !!r.dest.territorial },
 } as const
 
 type FilterKey = keyof typeof FILTERS
 
 const value = (r: Row, k: SortKey): number | string => {
   switch (k) {
-    case 'name': return r.country.name
+    case 'name': return r.dest.label
     case 'net': return r.net
     case 'delta': return r.delta.net
     case 'afterHousing': return r.afterHousing
@@ -36,28 +37,38 @@ const value = (r: Row, k: SortKey): number | string => {
 export function RankingsTable() {
   const { currency, profile } = useApp()
   const { toggleTarget, openDrawer, focusOn } = useApp.getState()
-  const { rows } = useRows()
+  const { rows, byCountry } = useRows()
   const [sort, setSort] = useState<{ key: SortKey; desc: boolean }>({ key: 'afterHousing', desc: true })
   const [region, setRegion] = useState<string>('All')
   const [query, setQuery] = useState('')
   const [filters, setFilters] = useState<FilterKey[]>([])
+  const [bestRegionOnly, setBestRegionOnly] = useState(false)
   const capital = profile.gains + profile.dividends + profile.interest
 
   const sorted = useMemo(() => {
     const q = query.trim().toLowerCase()
     const list = rows.filter(
       (r) =>
-        (region === 'All' || r.country.region === region) &&
-        (!q || r.country.name.toLowerCase().includes(q) || r.city.name.toLowerCase().includes(q)) &&
+        (region === 'All' || r.dest.region === region) &&
+        (!q || r.dest.label.toLowerCase().includes(q) || r.city.name.toLowerCase().includes(q)) &&
         filters.every((f) => FILTERS[f].test(r)),
     )
-    return list.sort((a, b) => {
+    list.sort((a, b) => {
       const va = value(a, sort.key)
       const vb = value(b, sort.key)
       const cmp = typeof va === 'string' ? va.localeCompare(vb as string) : (va as number) - (vb as number)
       return sort.desc ? -cmp : cmp
     })
-  }, [rows, region, query, filters, sort])
+    if (!bestRegionOnly) return list
+    // Keep the top-ranked region of each split country (plus home), under the current sort.
+    const seen = new Set<string>()
+    return list.filter((r) => {
+      if (!r.dest.subdivision || r.isHome) return true
+      if (seen.has(r.dest.iso2)) return false
+      seen.add(r.dest.iso2)
+      return true
+    })
+  }, [rows, region, query, filters, sort, bestRegionOnly])
 
   const Th = ({ k, children, hint, className }: { k: SortKey; children: React.ReactNode; hint?: string; className?: string }) => (
     <th scope="col" className={cx('px-3 py-2.5 font-medium whitespace-nowrap', className)} aria-sort={sort.key === k ? (sort.desc ? 'descending' : 'ascending') : 'none'}>
@@ -80,7 +91,7 @@ export function RankingsTable() {
         </div>
         <div className="relative">
           <Search className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-slate-500" />
-          <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Filter by country or city" className="field w-64 pl-9" aria-label="Filter destinations" />
+          <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Filter by country, region or city" className="field w-64 pl-9" aria-label="Filter destinations" />
         </div>
       </div>
 
@@ -104,6 +115,15 @@ export function RankingsTable() {
             </button>
           )
         })}
+        <span className="mx-1 h-4 w-px bg-white/10" />
+        <button
+          aria-pressed={bestRegionOnly}
+          onClick={() => setBestRegionOnly((v) => !v)}
+          title="US states, Canadian provinces, Swiss cantons and Spanish regions are ranked separately. Show only the best-ranked one per country."
+          className={cx('chip px-3 py-1 transition', bestRegionOnly ? 'border-teal-300/50 bg-teal-400/15 text-teal-100' : 'hover:bg-white/10')}
+        >
+          {bestRegionOnly && <Check className="h-3 w-3" />} Best region per country
+        </button>
       </div>
 
       <div className="panel scrollbar-thin overflow-x-auto">
@@ -125,24 +145,32 @@ export function RankingsTable() {
           <tbody>
             {sorted.map((r, i) => (
               <tr
-                key={r.country.iso2}
+                key={r.dest.id}
                 className={cx('group cursor-pointer border-b border-white/5 transition last:border-0 hover:bg-white/[0.04]', r.isHome && 'bg-amber-400/[0.06]')}
                 onClick={() => {
-                  focusOn(r.country.iso2)
-                  openDrawer(r.country.iso2)
+                  focusOn(r.dest.id)
+                  openDrawer(r.dest.id)
                 }}
               >
                 <td className="px-3 py-2.5 text-xs text-slate-500 tabular-nums">{i + 1}</td>
                 <td className="px-3 py-2.5">
                   <div className="flex items-center gap-2.5">
-                    <Flag iso={r.country.iso2} className="text-xl" />
+                    <Flag iso={r.dest.iso2} className="text-xl" />
                     <div className="min-w-0">
                       <div className="flex items-center gap-1.5 font-medium text-slate-100">
-                        {r.country.name}
+                        {r.dest.name}
                         {r.isHome && <span className="chip border-amber-400/40 bg-amber-400/15 py-0 text-[10px] text-amber-200">Home</span>}
+                        <RegionChip row={r} className="hidden py-0 text-[10px] lg:inline-flex" />
                       </div>
                       <div className="truncate text-xs text-slate-500">
+                        {r.dest.subdivision && `${r.dest.countryName} · `}
                         {r.city.name}
+                        {bestRegionOnly && r.dest.subdivision && !r.isHome && (
+                          <span className="text-teal-300/80">
+                            {' '}
+                            · best of {byCountry.get(r.dest.iso2)?.length} {subdivisionLabel(r.dest).many}
+                          </span>
+                        )}
                         {r.res.regime && <span className="text-violet-300"> · {r.res.regime.name}</span>}
                       </div>
                     </div>
@@ -176,10 +204,10 @@ export function RankingsTable() {
                     <button
                       onClick={(e) => {
                         e.stopPropagation()
-                        toggleTarget(r.country.iso2)
+                        toggleTarget(r.dest.id)
                       }}
                       className={cx('btn px-2 py-1 text-xs', r.isTarget ? 'text-cyan-300' : 'text-slate-400 opacity-60 group-hover:opacity-100 hover:text-white')}
-                      aria-label={r.isTarget ? `Remove ${r.country.name} from comparison` : `Compare ${r.country.name}`}
+                      aria-label={r.isTarget ? `Remove ${r.dest.label} from comparison` : `Compare ${r.dest.label}`}
                     >
                       {r.isTarget ? <Check className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
                     </button>

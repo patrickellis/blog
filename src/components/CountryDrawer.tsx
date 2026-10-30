@@ -1,11 +1,12 @@
-import { BadgePercent, DoorOpen, Globe2, Home, Languages, Minus, Plus, ScrollText, Stamp, X } from 'lucide-react'
+import { BadgePercent, DoorOpen, Globe2, Home, Languages, Map as MapIcon, Minus, Plus, ScrollText, Stamp, X } from 'lucide-react'
 import { useEffect, useMemo, useRef } from 'react'
-import { BY_ISO } from '../data/countries'
+import { BY_ID, subdivisionLabel } from '../data/countries'
 import { cx, money, pct } from '../lib/format'
 import { isEligible } from '../lib/tax'
 import { computeRow, HOUSING_LABEL, regimeChoiceFor, useRows } from '../state/results'
 import { useApp } from '../state/store'
-import { Delta, Flag } from './ui'
+import { RegionalSpread, RegionalTaxBreakdown } from './RegionalSpread'
+import { Delta, ExtLink, Flag } from './ui'
 
 function Section({ icon, title, children }: { icon: React.ReactNode; title: string; children: React.ReactNode }) {
   return (
@@ -19,15 +20,15 @@ function Section({ icon, title, children }: { icon: React.ReactNode; title: stri
 }
 
 export function CountryDrawer() {
-  const { drawerIso, currency, regimeByIso, profile, homeIso } = useApp()
+  const { drawerId, currency, regimeById, profile, homeId } = useApp()
   const { openDrawer, toggleTarget, setHome, setCity, setRegime } = useApp.getState()
-  const { byIso, ctx, home, homeCol } = useRows()
+  const { byId, ctx, home, homeCol } = useRows()
   const panel = useRef<HTMLDivElement>(null)
-  const country = drawerIso ? BY_ISO.get(drawerIso) : undefined
-  const row = drawerIso ? byIso.get(drawerIso) : undefined
+  const country = drawerId ? BY_ID.get(drawerId) : undefined
+  const row = drawerId ? byId.get(drawerId) : undefined
 
   useEffect(() => {
-    if (!drawerIso) return
+    if (!drawerId) return
     const onKey = (e: KeyboardEvent) => e.key === 'Escape' && openDrawer(null)
     window.addEventListener('keydown', onKey)
     panel.current?.focus()
@@ -36,16 +37,17 @@ export function CountryDrawer() {
       window.removeEventListener('keydown', onKey)
       document.body.style.overflow = ''
     }
-  }, [drawerIso, openDrawer])
+  }, [drawerId, openDrawer])
 
-  const choice = country ? regimeChoiceFor(country.iso2, homeIso, regimeByIso) : 'auto'
+  const choice = country ? regimeChoiceFor(country.id, homeId, regimeById) : 'auto'
   const cityRows = useMemo(() => (country ? country.cities.map((_, i) => computeRow(country, i, choice, ctx)) : []), [country, choice, ctx])
 
   if (!country || !row) return null
   const res = row.res
+  const kind = country.subdivision && subdivisionLabel(country)
 
   return (
-    <div className="fixed inset-0 z-50 flex justify-end" role="dialog" aria-modal="true" aria-label={`${country.name} details`}>
+    <div className="fixed inset-0 z-50 flex justify-end" role="dialog" aria-modal="true" aria-label={`${country.label} details`}>
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => openDrawer(null)} />
       <div ref={panel} tabIndex={-1} className="scrollbar-thin relative flex h-full w-full max-w-2xl flex-col overflow-y-auto border-l border-white/10 bg-ink-900 shadow-2xl outline-none">
         <div className={cx('h-1 shrink-0', row.isHome ? 'bg-home' : row.isTarget ? 'bg-target' : 'bg-teal-400/60')} />
@@ -53,17 +55,17 @@ export function CountryDrawer() {
           <Flag iso={country.iso2} className="text-4xl" />
           <div className="min-w-0 flex-1">
             <h2 className="truncate text-xl font-semibold text-white">{country.name}</h2>
-            <p className="text-sm text-slate-400">
-              {country.region} · {country.currency} · UTC{country.utc}
+            <p className="truncate text-sm text-slate-400">
+              {kind ? `${kind.one}, ${country.countryName}` : country.region} · {country.currency} · UTC{country.utc}
             </p>
           </div>
           {!row.isHome && (
             <>
-              <button onClick={() => toggleTarget(country.iso2)} className={row.isTarget ? 'btn-outline' : 'btn-primary'}>
+              <button onClick={() => toggleTarget(country.id)} className={row.isTarget ? 'btn-outline' : 'btn-primary'}>
                 {row.isTarget ? <Minus className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
                 <span className="hidden sm:inline">{row.isTarget ? 'Remove' : 'Compare'}</span>
               </button>
-              <button onClick={() => setHome(country.iso2)} className="btn-outline" title="Set as your current country">
+              <button onClick={() => setHome(country.id)} className="btn-outline" title="Set as where you live now">
                 <Home className="h-4 w-4" />
               </button>
             </>
@@ -81,7 +83,7 @@ export function CountryDrawer() {
                 <div className="mt-1 text-3xl font-semibold text-white tabular-nums">{money(row.net, currency)}</div>
                 {!row.isHome && (
                   <div className="text-sm">
-                    <Delta value={row.delta.net} pctValue={row.delta.netPct} currency={currency} compact={false} /> <span className="text-slate-500">vs {home.country.name}</span>
+                    <Delta value={row.delta.net} pctValue={row.delta.netPct} currency={currency} compact={false} /> <span className="text-slate-500">vs {home.dest.name}</span>
                   </div>
                 )}
               </div>
@@ -103,7 +105,7 @@ export function CountryDrawer() {
             {!!country.regimes?.length && (
               <div className="mt-4 flex flex-wrap items-center gap-2 text-sm">
                 <span className="text-slate-400">Tax treatment</span>
-                <select aria-label="Tax regime" value={choice} onChange={(e) => setRegime(country.iso2, e.target.value)} className="field w-auto cursor-pointer py-1.5">
+                <select aria-label="Tax regime" value={choice} onChange={(e) => setRegime(country.id, e.target.value)} className="field w-auto cursor-pointer py-1.5">
                   <option value="auto">Best available regime</option>
                   <option value="standard">Standard rules</option>
                   {country.regimes.map((r) => (
@@ -115,12 +117,18 @@ export function CountryDrawer() {
               </div>
             )}
             <dl className="mt-4 space-y-1.5 border-t border-white/10 pt-4 text-sm">
-              {res.lines.map((l) => (
-                <div key={l.key} className="flex justify-between gap-4">
-                  <dt className="text-slate-400">{l.label}</dt>
-                  <dd className="text-slate-200 tabular-nums">−{money(l.amount * row.toDisplay, currency)}</dd>
-                </div>
-              ))}
+              {res.lines.map((l) => {
+                const regional = kind && l.key.startsWith('local:')
+                return (
+                  <div key={l.key} className="flex justify-between gap-4">
+                    <dt className={cx('flex items-center gap-2', regional ? 'text-teal-200' : 'text-slate-400')}>
+                      {l.label}
+                      {regional && <span className="chip border-teal-300/30 bg-teal-400/10 py-0 text-[10px] text-teal-100">{kind.adjective}</span>}
+                    </dt>
+                    <dd className="text-slate-200 tabular-nums">−{money(l.amount * row.toDisplay, currency)}</dd>
+                  </div>
+                )
+              })}
               <div className="flex justify-between gap-4 border-t border-white/10 pt-2 font-medium">
                 <dt className="text-slate-200">Gross → net</dt>
                 <dd className="text-white tabular-nums">
@@ -147,7 +155,7 @@ export function CountryDrawer() {
                     const fx = ctx.rates[currency] ?? 1
                     const selected = i === row.cityIndex
                     return (
-                      <tr key={cr.city.name} onClick={() => setCity(country.iso2, i)} className={cx('cursor-pointer border-t border-white/5 hover:bg-white/[0.04]', selected && 'bg-cyan-400/[0.07]')}>
+                      <tr key={cr.city.name} onClick={() => setCity(country.id, i)} className={cx('cursor-pointer border-t border-white/5 hover:bg-white/[0.04]', selected && 'bg-cyan-400/[0.07]')}>
                         <td className="px-3 py-2 text-slate-100">
                           <span className="flex items-center gap-2">
                             <span className={cx('h-1.5 w-1.5 rounded-full', selected ? 'bg-cyan-300' : 'bg-white/20')} />
@@ -174,10 +182,20 @@ export function CountryDrawer() {
             <p className="text-xs text-slate-500">Monthly city-centre rents. Costs index excludes rent; % shows difference from your home city. Click a city to use it.</p>
           </Section>
 
+          {kind && (
+            <Section icon={<MapIcon className="h-4 w-4 text-teal-300" />} title={`${kind.adjective} taxes across ${country.countryName}`}>
+              <RegionalSpread row={row} />
+              <p className="text-xs text-slate-500">
+                Each {kind.one.toLowerCase()} sets its own taxes, so where you settle can matter as much as which country. Click a {kind.one.toLowerCase()} to open it, or + to compare.
+              </p>
+            </Section>
+          )}
+
           <Section icon={<ScrollText className="h-4 w-4 text-cyan-300" />} title="Tax system at a glance">
+            <RegionalTaxBreakdown row={row} />
             <dl className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-3">
               {[
-                ['Top income rate', pct(country.headline.topIncome, 1)],
+                [kind ? `Top income rate (${kind.national.toLowerCase()} + ${kind.adjective.toLowerCase()})` : 'Top income rate', pct(country.headline.topIncome, 1)],
                 ['Capital gains', country.headline.cgt],
                 ['Dividends', country.headline.dividends],
                 ['Wealth tax', country.headline.wealth],
@@ -209,7 +227,13 @@ export function CountryDrawer() {
                   return (
                     <li key={r.id} className={cx('rounded-xl p-4 ring-1', applied ? 'bg-violet-500/10 ring-violet-400/40' : 'bg-white/[0.03] ring-white/10')}>
                       <div className="flex flex-wrap items-center gap-2">
-                        <span className="font-medium text-white">{r.name}</span>
+                        {r.url ? (
+                          <ExtLink href={r.url} className="font-medium text-white">
+                            {r.name}
+                          </ExtLink>
+                        ) : (
+                          <span className="font-medium text-white">{r.name}</span>
+                        )}
                         <span className="chip">{r.duration}</span>
                         {r.manualOnly && <span className="chip" title="Depends on personal status, so never applied automatically">Opt-in</span>}
                         {applied ? (
@@ -218,7 +242,7 @@ export function CountryDrawer() {
                           <span className="chip text-slate-400">Not eligible with this profile</span>
                         ) : null}
                         {!applied && (
-                          <button onClick={() => setRegime(country.iso2, r.id)} className="btn-ghost ml-auto px-2 py-1 text-xs text-violet-200">
+                          <button onClick={() => setRegime(country.id, r.id)} className="btn-ghost ml-auto px-2 py-1 text-xs text-violet-200">
                             Try it
                           </button>
                         )}
@@ -236,12 +260,20 @@ export function CountryDrawer() {
 
           <Section icon={<Stamp className="h-4 w-4 text-cyan-300" />} title="Residency routes">
             <div className="flex flex-wrap gap-2">
-              {country.visas.map((v) => (
-                <span key={v} className="chip px-3 py-1 text-sm">
-                  {v}
-                </span>
-              ))}
+              {country.visas.map((v) => {
+                const href = country.sources?.visas?.[v]
+                return href ? (
+                  <ExtLink key={v} href={href} className="chip px-3 py-1 text-sm text-slate-200 hover:border-cyan-400/40 hover:bg-cyan-400/10 hover:text-white hover:no-underline">
+                    {v}
+                  </ExtLink>
+                ) : (
+                  <span key={v} className="chip px-3 py-1 text-sm">
+                    {v}
+                  </span>
+                )
+              })}
             </div>
+            {country.sources?.visas && <p className="text-xs text-slate-500">Linked routes open the official immigration page.</p>}
           </Section>
 
           <Section icon={<Languages className="h-4 w-4 text-cyan-300" />} title="Living there">

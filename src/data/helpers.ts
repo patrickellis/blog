@@ -12,6 +12,12 @@ export const stacked = (brackets: Brackets, allowance?: number): Treatment => ({
 /** Common shape for capital treatments overridden by a regime. */
 export const ALL_CAPITAL_EXEMPT = { gains: FOREIGN_EXEMPT, dividends: FOREIGN_EXEMPT, interest: FOREIGN_EXEMPT }
 
+/** Highest marginal rate of a schedule. */
+export const top = (b: Brackets) => Math.max(...b.map(([, r]) => r))
+
+/** Rounds a combined headline rate to 0.1%. */
+export const rate = (r: number) => Math.round(r * 1000) / 1000
+
 /** A zero personal income tax system with optional social contributions. */
 export const zeroTax = (social?: TaxSystem['social']): TaxSystem => ({
   brackets: [[I, 0]],

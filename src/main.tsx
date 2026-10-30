@@ -3,11 +3,14 @@ import { createRoot } from 'react-dom/client'
 import App from './App'
 import './index.css'
 import { FxProvider } from './state/fx-context'
+import { RowsProvider } from './state/rows-context'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <FxProvider>
-      <App />
+      <RowsProvider>
+        <App />
+      </RowsProvider>
     </FxProvider>
   </StrictMode>,
 )

@@ -16,14 +16,18 @@ function Tile({ icon, title, row, value, sub }: { icon: ReactNode; title: string
       <button
         className="flex items-center gap-3 text-left"
         onClick={() => {
-          focusOn(row.country.iso2)
-          openDrawer(row.country.iso2)
+          focusOn(row.dest.id)
+          openDrawer(row.dest.id)
         }}
       >
-        <Flag iso={row.country.iso2} className="text-3xl" />
+        <Flag iso={row.dest.iso2} className="text-3xl" />
         <span className="min-w-0">
-          <span className="block truncate font-semibold text-white group-hover:text-cyan-200">{row.country.name}</span>
-          <span className="block text-xs text-slate-400">{row.city.name}{row.res.regime ? ` · ${row.res.regime.name}` : ''}</span>
+          <span className="block truncate font-semibold text-white group-hover:text-cyan-200">{row.dest.name}</span>
+          <span className="block truncate text-xs text-slate-400">
+            {row.dest.subdivision && `${row.dest.countryName} · `}
+            {row.city.name}
+            {row.res.regime ? ` · ${row.res.regime.name}` : ''}
+          </span>
         </span>
       </button>
       <div className="flex items-end justify-between gap-2">
@@ -31,7 +35,7 @@ function Tile({ icon, title, row, value, sub }: { icon: ReactNode; title: string
           <div className="text-xl font-semibold text-white tabular-nums">{value}</div>
           <div className="text-xs">{sub}</div>
         </div>
-        <button onClick={() => toggleTarget(row.country.iso2)} className="btn-outline px-2 py-1 text-xs" aria-label={row.isTarget ? 'In comparison' : `Compare ${row.country.name}`}>
+        <button onClick={() => toggleTarget(row.dest.id)} className="btn-outline px-2 py-1 text-xs" aria-label={row.isTarget ? 'In comparison' : `Compare ${row.dest.label}`}>
           {row.isTarget ? <Check className="h-3.5 w-3.5 text-cyan-300" /> : <Plus className="h-3.5 w-3.5" />}
           {row.isTarget ? 'Comparing' : 'Compare'}
         </button>
